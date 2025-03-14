@@ -4,34 +4,37 @@ void Mapa::colorCeldaMM(unsigned char celda)
 {
   switch (celda)
   {
-  case 'P':
+  case 'P': // Precipicio
     glColor3f(0.15, 0.15, 0.15);
     break;
-  case 'B':
+  case 'B': // Arbol
     glColor3f(0.0, 1.0, 0.0);
     break;
-  case 'A':
-    glColor3f(0.0, 0.0, 1.0);
-    break;
-  case 'S':
-    glColor3f(0.6, 0.6, 0.6);
-    break;
-  case 'M':
-    glColor3f(0.6, 0.0, 0.0);
-    break;
-  case 'T':
+  case 'C': // Camino
     glColor3f(0.3, 0.25, 0.2);
     break;
-  case 'K':
+  case 'A': // Agua
+    glColor3f(0.0, 0.0, 1.0);
+    break;
+  case 'S': // Sendero
+    glColor3f(0.6, 0.6, 0.6);
+    break;
+  case 'M': // Obstaculo
+    glColor3f(0.6, 0.0, 0.0);
+    break;
+  case 'T': // Matorral
+    glColor3f(0.0, 0.8, 0.0);
+    break;
+  case 'K': // Bikini
     glColor3f(1.0, 1.0, 0.0);
     break;
-  case 'Z':
+  case 'Z': // Zapatillas
     glColor3f(0.0, 1.0, 0.3);
     break;
-  case 'D':
+  case 'D': //
     glColor3f(0.3, 0.15, 0.5);
     break;
-  case 'X':
+  case 'X': // Puesto Base
     glColor3f(1.0, 0.0, 1.0);
     break;
   default:
@@ -80,7 +83,6 @@ void Mapa::colorCeldaOpuestoMM(unsigned char celda)
   }
 }
 
-
 void Mapa::colorCeldaOpuestoMM2(unsigned char celda)
 {
   switch (celda)
@@ -89,6 +91,7 @@ void Mapa::colorCeldaOpuestoMM2(unsigned char celda)
     glColor3f(255.0 / 255.0, 159.0 / 255.0, 5.0 / 255.0);
     break;
   case 'B':
+  case 'T':
     glColor3f(255.0 / 255.0, 159.0 / 255.0, 5.0 / 255.0);
     break;
   case 'A':
@@ -100,9 +103,9 @@ void Mapa::colorCeldaOpuestoMM2(unsigned char celda)
   case 'M':
     glColor3f(255.0 / 255.0, 159.0 / 255.0, 5.0 / 255.0);
     break;
-  case 'T':
-    glColor3f(255.0 / 255.0, 159.0 / 255.0, 5.0 / 255.0);
-    break;
+  // case 'T':
+  //   glColor3f(255.0 / 255.0, 159.0 / 255.0, 5.0 / 255.0);
+  //   break;
   case 'K':
     glColor3f(0, 0, 0);
     break;
@@ -183,20 +186,21 @@ void Mapa::OrientacionEntidadFP(Orientacion orienParam)
   }
 }
 
-void Mapa::complementosCelda(unsigned char celda)
+void Mapa::complementosCelda(unsigned char celda, unsigned char altura)
 {
   Arbol3D *arbol = new Arbol3D();
+  unsigned char h = altura - '0';
 
   switch (celda)
   {
   case 'P':
     glColor3f(0.15, 0.15, 0.15);
     glTranslatef(0.0, 7.5, 0.0);
-    glScalef(5.0, 15.0, 5.0);
+    glScalef(5.0, -15.0, 5.0);
     glutSolidCube(1.0);
     break;
   case 'B':
-    glScalef(5.0, 10.0, 5.0);
+    glScalef(5.0, 10.0 + (1.0), 5.0);
     arbol->draw(1);
     break;
   case 'M':
@@ -214,27 +218,25 @@ void Mapa::formaEntidad(unsigned char tipoParam)
   RevolucionObj3D *jug = new RevolucionObj3D("ply/cilindro.ply", 3);
   switch (tipoParam)
   {
-  case 'j':
+  case 'r':
     glRotatef(90.0, 1, 0, 0);
     glScalef(1.0, 1.0, 0.75);
     jug->setColor(_vertex3<float>(1.0, 0.0, 0.0));
     jug->draw(1);
     break;
 
-  case 'c':
+  case 'a':
     glRotatef(90.0, 1, 0, 0);
     glScalef(1.0, 1.0, 0.75);
     jug->setColor(_vertex3<float>(255.0 / 255.0, 159.0 / 255.0, 5.0 / 255.0));
     jug->draw(1);
     break;
 
-  case 'l':
+  case 'v':
     glColor3f(1.0, 5.0 / 255.0, 238 / 255.0);
     glutSolidSphere(0.25, 6, 2);
     break;
-  case 'a':
-  case 'd':
-  case 'r':
+  case 'e':
     glColor3f(255.0 / 255.0, 159.0 / 255.0, 5.0 / 255.0);
     glutSolidCube(0.6);
     break;
@@ -250,10 +252,11 @@ void Mapa::formaEntidad(unsigned char tipoParam)
   }
 }
 
-void Mapa::drawMM1(vector<unsigned int> objetivosActivos /*int f, int c*/)
+void Mapa::drawMM1(vector<unsigned int> objetivosActivos, int level)
 {
   unsigned int colMed, filaMed;
   vector<vector<unsigned char>> mapaConPlan = (*entidades)[0]->getMapaPlan();
+  JoinMapasPlan(mapaConPlan, (*entidades)[1]->getMapaPlan());
 
   colMed = (mapaCompleto.size() / 2);
   filaMed = (mapaCompleto[0].size() / 2);
@@ -297,9 +300,12 @@ void Mapa::drawMM1(vector<unsigned int> objetivosActivos /*int f, int c*/)
         glEnd();*/
 
         // glColor3f(0.0,1.0,1.0);
-        if (mapaConPlan[j][i] == 1  or mapaConPlan[j][i] == 2){
-          if (mapaConPlan[j][i] == 1) colorCeldaOpuestoMM(mapaCompleto[j][i]);
-          else colorCeldaOpuestoMM2(mapaCompleto[j][i]);
+        if (mapaConPlan[j][i] == 1 or mapaConPlan[j][i] == 2)
+        {
+          if (mapaConPlan[j][i] == 1)
+            colorCeldaOpuestoMM(mapaCompleto[j][i]);
+          else
+            colorCeldaOpuestoMM2(mapaCompleto[j][i]);
 
           glBegin(GL_QUADS);
           glVertex3f(0.0, -0.3, 0.0);
@@ -307,19 +313,20 @@ void Mapa::drawMM1(vector<unsigned int> objetivosActivos /*int f, int c*/)
           glVertex3f(0.0, 0.3, 0.0);
           glVertex3f(0.3, 0.0, 0.0);
           glEnd();
-        } 
-        if (mapaConPlan[j][i] == 3){
+        }
+        if (mapaConPlan[j][i] == 3)
+        {
           colorCeldaOpuestoMM(mapaCompleto[j][i]);
           glBegin(GL_TRIANGLES);
           glVertex3f(-0.10f, 0.0f, 0.0);
           glVertex3f(0.10f, 0.0f, 0.0);
           glVertex3f(0.0f, 0.20f, 0.0);
 
-          glVertex3f(-0.10f,0.0f, 0.0);
-          glVertex3f(-0.30f,-0.10f, 0.0);
-          glVertex3f(-0.10f,-0.20f, 0.0);
+          glVertex3f(-0.10f, 0.0f, 0.0);
+          glVertex3f(-0.30f, -0.10f, 0.0);
+          glVertex3f(-0.10f, -0.20f, 0.0);
 
-          glVertex3f(-0.10f,-0.20f, 0.0);
+          glVertex3f(-0.10f, -0.20f, 0.0);
           glVertex3f(0.0f, -0.40f, 0.0);
           glVertex3f(0.10f, -0.20f, 0.0);
 
@@ -328,10 +335,10 @@ void Mapa::drawMM1(vector<unsigned int> objetivosActivos /*int f, int c*/)
           glVertex3f(0.10f, 0.0f, 0.0);
 
           glVertex3f(-0.10f, 0.0f, 0.0);
-          glVertex3f(-0.10f,-0.20f, 0.0);
+          glVertex3f(-0.10f, -0.20f, 0.0);
           glVertex3f(0.10f, 0.0f, 0.0);
 
-          glVertex3f(-0.10f,-0.20f, 0.0);
+          glVertex3f(-0.10f, -0.20f, 0.0);
           glVertex3f(0.10f, -0.20f, 0.0);
           glVertex3f(0.10f, 0.0f, 0.0);
           glEnd();
@@ -342,14 +349,34 @@ void Mapa::drawMM1(vector<unsigned int> objetivosActivos /*int f, int c*/)
     }
   }
 
-  for (unsigned int i = 0; i < objetivosActivos.size(); i = i + 2)
+  if (level > 1)
   {
-    glPushMatrix();
-    glTranslatef(((GLfloat)objetivosActivos[i + 1] - (GLfloat)colMed) * ratio, ((GLfloat)filaMed - (GLfloat)objetivosActivos[i]) * ratio, 0);
-    glColor3f(1.0, 1.0, 1.0);
-    glScalef(ratio, ratio, ratio);
-    glutSolidSphere(0.5, 6, 2);
-    glPopMatrix();
+    for (unsigned int i = 0; i < objetivosActivos.size(); i = i + 3)
+    {
+      glPushMatrix();
+      glTranslatef(((GLfloat)objetivosActivos[i + 1] - (GLfloat)colMed) * ratio, ((GLfloat)filaMed - (GLfloat)objetivosActivos[i]) * ratio, 0);
+      if (objetivosActivos[i + 2] == 0)
+        glColor3f(1.0, 1.0, 1.0);
+      else
+        glColor3f(1.0, 0.0, 0.0);
+
+      glScalef(ratio, ratio, ratio);
+      glutSolidSphere(0.5, 6, 2);
+
+      glColor3f(0.0, 0.0, 0.0);
+      glScalef(7 * ratio / 8, 7 * ratio / 8, 7 * ratio / 8);
+      glutSolidSphere(0.5, 6, 2);
+
+      if (objetivosActivos[i + 2] == 0)
+        glColor3f(1.0, 1.0, 1.0);
+      else
+        glColor3f(1.0, 0.0, 0.0);
+
+      glScalef(ratio / 2, ratio / 2, ratio / 2);
+      glutSolidSphere(0.5, 6, 2);
+
+      glPopMatrix();
+    }
   }
 
   for (unsigned int i = 0; i < entidades->size(); i++)
@@ -371,11 +398,30 @@ void Mapa::drawMM1(vector<unsigned int> objetivosActivos /*int f, int c*/)
   }
 }
 
-void Mapa::drawMM2(vector<unsigned int> objetivosActivos /*int f, int c*/)
+void Mapa::JoinMapasSuperficie (vector<vector<unsigned char>> &resultado, const vector<vector<unsigned char>> &fuente){
+  for (int i=0; i<resultado.size(); i++){
+    for (int j=0; j<resultado[0].size(); j++){
+      if (resultado[i][j] == '?') resultado[i][j] = fuente[i][j];
+    }
+  }
+}
+
+void Mapa::JoinMapasPlan (vector<vector<unsigned char>> &resultado, const vector<vector<unsigned char>> &fuente){
+  for (int i=0; i<resultado.size(); i++){
+    for (int j=0; j<resultado[0].size(); j++){
+      if (resultado[i][j] == 0) resultado[i][j] = fuente[i][j];
+    }
+  }
+}
+
+
+void Mapa::drawMM2(vector<unsigned int> objetivosActivos, int level)
 {
   vector<vector<unsigned char>> mapaSuperficie = (*entidades)[0]->getMapaResultado();
+  JoinMapasSuperficie(mapaSuperficie, (*entidades)[1]->getMapaResultado());
   vector<vector<unsigned char>> mapaEntidades = (*entidades)[0]->getMapaEntidades();
   vector<vector<unsigned char>> mapaConPlan = (*entidades)[0]->getMapaPlan();
+  JoinMapasPlan(mapaConPlan, (*entidades)[1]->getMapaPlan());
 
   unsigned int colMed, filaMed;
 
@@ -403,23 +449,24 @@ void Mapa::drawMM2(vector<unsigned int> objetivosActivos /*int f, int c*/)
 
       colorCeldaMM(mapaSuperficie[j][i]);
 
-      switch (mapaSuperficie[j][i]){
-        case 'T':
-          glBegin(GL_QUADS);
-          glVertex3f(-0.5, -0.5, 1.0);
-          glVertex3f(-0.5, 0.5, 1.0);
-          glVertex3f(0.5, 0.5, 1.0);
-          glVertex3f(0.5, -0.5, 1.0);
-          glEnd();        
-          break;
-        default:
-          glBegin(GL_QUADS);
-          glVertex3f(-0.5, -0.5, 0.0);
-          glVertex3f(-0.5, 0.5, 0.0);
-          glVertex3f(0.5, 0.5, 0.0);
-          glVertex3f(0.5, -0.5, 0.0);
-          glEnd();        
-          break;
+      switch (mapaSuperficie[j][i])
+      {
+      case 'T':
+        glBegin(GL_QUADS);
+        glVertex3f(-0.5, -0.5, 1.0);
+        glVertex3f(-0.5, 0.5, 1.0);
+        glVertex3f(0.5, 0.5, 1.0);
+        glVertex3f(0.5, -0.5, 1.0);
+        glEnd();
+        break;
+      default:
+        glBegin(GL_QUADS);
+        glVertex3f(-0.5, -0.5, 0.0);
+        glVertex3f(-0.5, 0.5, 0.0);
+        glVertex3f(0.5, 0.5, 0.0);
+        glVertex3f(0.5, -0.5, 0.0);
+        glEnd();
+        break;
       }
 
       glBegin(GL_QUADS);
@@ -440,9 +487,12 @@ void Mapa::drawMM2(vector<unsigned int> objetivosActivos /*int f, int c*/)
         glEnd();*/
 
         // glColor3f(0.0,1.0,1.0);
-        if (mapaConPlan[j][i] == 1  or mapaConPlan[j][i] == 2){
-          if (mapaConPlan[j][i] == 1) colorCeldaOpuestoMM(mapaCompleto[j][i]);
-          else colorCeldaOpuestoMM2(mapaCompleto[j][i]);
+        if (mapaConPlan[j][i] == 1 or mapaConPlan[j][i] == 2)
+        {
+          if (mapaConPlan[j][i] == 1)
+            colorCeldaOpuestoMM(mapaCompleto[j][i]);
+          else
+            colorCeldaOpuestoMM2(mapaCompleto[j][i]);
 
           glBegin(GL_QUADS);
           glVertex3f(0.0, -0.3, 0.0);
@@ -450,19 +500,20 @@ void Mapa::drawMM2(vector<unsigned int> objetivosActivos /*int f, int c*/)
           glVertex3f(0.0, 0.3, 0.0);
           glVertex3f(0.3, 0.0, 0.0);
           glEnd();
-        } 
-        if (mapaConPlan[j][i] == 3){
+        }
+        if (mapaConPlan[j][i] == 3)
+        {
           colorCeldaOpuestoMM(mapaCompleto[j][i]);
           glBegin(GL_TRIANGLES);
           glVertex3f(-0.10f, 0.0f, 0.0);
           glVertex3f(0.10f, 0.0f, 0.0);
           glVertex3f(0.0f, 0.20f, 0.0);
 
-          glVertex3f(-0.10f,0.0f, 0.0);
-          glVertex3f(-0.30f,-0.10f, 0.0);
-          glVertex3f(-0.10f,-0.20f, 0.0);
+          glVertex3f(-0.10f, 0.0f, 0.0);
+          glVertex3f(-0.30f, -0.10f, 0.0);
+          glVertex3f(-0.10f, -0.20f, 0.0);
 
-          glVertex3f(-0.10f,-0.20f, 0.0);
+          glVertex3f(-0.10f, -0.20f, 0.0);
           glVertex3f(0.0f, -0.40f, 0.0);
           glVertex3f(0.10f, -0.20f, 0.0);
 
@@ -471,10 +522,10 @@ void Mapa::drawMM2(vector<unsigned int> objetivosActivos /*int f, int c*/)
           glVertex3f(0.10f, 0.0f, 0.0);
 
           glVertex3f(-0.10f, 0.0f, 0.0);
-          glVertex3f(-0.10f,-0.20f, 0.0);
+          glVertex3f(-0.10f, -0.20f, 0.0);
           glVertex3f(0.10f, 0.0f, 0.0);
 
-          glVertex3f(-0.10f,-0.20f, 0.0);
+          glVertex3f(-0.10f, -0.20f, 0.0);
           glVertex3f(0.10f, -0.20f, 0.0);
           glVertex3f(0.10f, 0.0f, 0.0);
           glEnd();
@@ -485,19 +536,38 @@ void Mapa::drawMM2(vector<unsigned int> objetivosActivos /*int f, int c*/)
     }
   }
 
-  for (unsigned int i = 0; i < objetivosActivos.size(); i = i + 2)
+  if (level > 1)
   {
-    glPushMatrix();
-    glTranslatef(((GLfloat)objetivosActivos[i + 1] - (GLfloat)colMed) * ratio, ((GLfloat)filaMed - (GLfloat)objetivosActivos[i]) * ratio, 0);
-    glColor3f(1.0, 0.0, 0.0);
-    glScalef(ratio, ratio, ratio);
-    glutSolidSphere(0.5, 6, 2);
-    glPopMatrix();
+    for (unsigned int i = 0; i < objetivosActivos.size(); i = i + 3)
+    {
+      glPushMatrix();
+      glTranslatef(((GLfloat)objetivosActivos[i + 1] - (GLfloat)colMed) * ratio, ((GLfloat)filaMed - (GLfloat)objetivosActivos[i]) * ratio, 0);
+      if (objetivosActivos[i + 2] == 0)
+        glColor3f(1.0, 1.0, 1.0);
+      else
+        glColor3f(1.0, 0.0, 0.0);
+
+      glScalef(ratio, ratio, ratio);
+      glutSolidSphere(0.5, 6, 2);
+
+      glColor3f(0.0, 0.0, 0.0);
+      glScalef(7 * ratio / 8, 7 * ratio / 8, 7 * ratio / 8);
+      glutSolidSphere(0.5, 6, 2);
+
+      if (objetivosActivos[i + 2] == 0)
+        glColor3f(1.0, 1.0, 1.0);
+      else
+        glColor3f(1.0, 0.0, 0.0);
+
+      glScalef(ratio / 2, ratio / 2, ratio / 2);
+      glutSolidSphere(0.5, 6, 2);
+      glPopMatrix();
+    }
   }
 
   for (unsigned int i = 0; i < entidades->size(); i++)
   {
-    //cout << "Entidad " << i << " tipo " << (*entidades)[i]->getSubTipoChar() << " (" << (*entidades)[i]->getFil() << ", " << (*entidades)[i]->getCol() << endl;
+    // cout << "Entidad " << i << " tipo " << (*entidades)[i]->getSubTipoChar() << " (" << (*entidades)[i]->getFil() << ", " << (*entidades)[i]->getCol() << endl;
     if ((*entidades)[i]->getHitbox())
     {
       glPushMatrix();
@@ -515,9 +585,10 @@ void Mapa::drawMM2(vector<unsigned int> objetivosActivos /*int f, int c*/)
   }
 }
 
-void Mapa::drawFirstPerson()
+void Mapa::drawFirstPerson(int entidad)
 {
   vector<vector<unsigned char>> mapaConPlan = (*entidades)[0]->getMapaPlan();
+  JoinMapasPlan(mapaConPlan, (*entidades)[1]->getMapaPlan());
   unsigned int colMed, filaMed;
 
   colMed = (mapaCompleto.size() / 2);
@@ -525,10 +596,10 @@ void Mapa::drawFirstPerson()
 
   if (entidades->size() > 0)
   {
-    z = (*entidades)[0]->getFil() + 1;
-    x = (*entidades)[0]->getCol() + 1;
+    z = (*entidades)[entidad]->getFil() + 1;
+    x = (*entidades)[entidad]->getCol() + 1;
 
-    switch ((*entidades)[0]->getOrientacion())
+    switch ((*entidades)[entidad]->getOrientacion())
     {
     case norte:
       angulo = 180.0;
@@ -559,7 +630,7 @@ void Mapa::drawFirstPerson()
 
   // Camara
   gluLookAt(
-      ((GLfloat)colMed - (GLfloat)x) * (5.0),  3.5 + Y2, ((GLfloat)filaMed - (GLfloat)z) * 5.0,
+      ((GLfloat)colMed - (GLfloat)x) * (5.0), 3.5 + Y2, ((GLfloat)filaMed - (GLfloat)z) * 5.0,
       (((GLfloat)colMed - (GLfloat)x) * (5.0)) + sin((angulo * 2.0 * M_PI) / 360.0), 3.4 - Y1, (((GLfloat)filaMed - (GLfloat)z) * 5.0) - cos((angulo * 2.0 * M_PI) / 360.0),
       0.0, 3.3, 0.0);
 
@@ -583,6 +654,7 @@ void Mapa::drawFirstPerson()
     {
       // Suelo
       glPushMatrix();
+      int h = mapaAlturas[j][i] - '0';
 
       if (mapaCompleto[j][i] == 'K')
       {
@@ -595,7 +667,7 @@ void Mapa::drawFirstPerson()
       }
       else if (mapaCompleto[j][i] == 'A')
       {
-        glTranslatef(((GLfloat)filaMed - (GLfloat)i - 1) * 5.0, -0.3, ((GLfloat)colMed - (GLfloat)j - 1) * 5.0);
+        glTranslatef(((GLfloat)filaMed - (GLfloat)i - 1) * 5.0, -0.5, ((GLfloat)colMed - (GLfloat)j - 1) * 5.0);
 
         colorCeldaMM(mapaCompleto[j][i]);
 
@@ -630,9 +702,9 @@ void Mapa::drawFirstPerson()
           glColor3f(1.0, 0.0, 0.0);
           glScalef(1.0, 1.2, 1.0);
           glutSolidSphere(0.43, 50, 50);
-          //glutSolidOctahedron();
-          //glutSolidCube(0.4);
-        }     
+          // glutSolidOctahedron();
+          // glutSolidCube(0.4);
+        }
       }
 
       glPopMatrix();
@@ -640,7 +712,7 @@ void Mapa::drawFirstPerson()
       // Complementos
       glPushMatrix();
       glTranslatef(((GLfloat)filaMed - (GLfloat)i - 1) * 5.0, 0.0, ((GLfloat)colMed - (GLfloat)j - 1) * 5.0);
-      complementosCelda(mapaCompleto[j][i]);
+      complementosCelda(mapaCompleto[j][i], mapaAlturas[j][i]);
       glPopMatrix();
     }
   }
@@ -651,23 +723,26 @@ void Mapa::drawFirstPerson()
   luz.draw();
 
   // Dibujamos las entidades
-  for (unsigned int i = 1; i < entidades->size(); i++)
+  for (unsigned int i = 0; i < entidades->size(); i++)
   {
-    z = (*entidades)[i]->getFil() + 1;
-    x = (*entidades)[i]->getCol() + 1;
+    if (i != entidad)
+    {
+      z = (*entidades)[i]->getFil() + 1;
+      x = (*entidades)[i]->getCol() + 1;
 
-    glPushMatrix();
-    glTranslatef(((GLfloat)colMed - (GLfloat)x) * 5.0, 0.4, ((GLfloat)filaMed - (GLfloat)z) * 5.0);
+      glPushMatrix();
+      glTranslatef(((GLfloat)colMed - (GLfloat)x) * 5.0, 0.4, ((GLfloat)filaMed - (GLfloat)z) * 5.0);
 
-    OrientacionEntidadFP((*entidades)[i]->getOrientacion());
-    (*entidades)[i]->draw(1);
+      OrientacionEntidadFP((*entidades)[i]->getOrientacion());
+      (*entidades)[i]->draw(1);
 
-    glPopMatrix();
+      glPopMatrix();
+    }
   }
 }
 
-
-int Mapa::QuienEnCasilla (int f, int c){
+int Mapa::QuienEnCasilla(int f, int c)
+{
   int out = -1; // Desocupada
   unsigned int i = 0;
   while ((i < entidades->size()) and (out == -1))
@@ -680,9 +755,7 @@ int Mapa::QuienEnCasilla (int f, int c){
   }
 
   return out;
-
 }
-
 
 int Mapa::casillaOcupada(unsigned int entidad)
 {
@@ -721,13 +794,10 @@ int Mapa::casillaOcupada(unsigned int entidad)
     break;
   }
 
-
-  return QuienEnCasilla(f,c);
+  return QuienEnCasilla(f, c);
 }
 
-
-
-pair<int,int> Mapa::NCasillasDelante(unsigned int entidad, int casillas)
+pair<int, int> Mapa::NCasillasDelante(unsigned int entidad, int casillas)
 {
   int out = -1;
   unsigned int f = (*entidades)[entidad]->getFil();
@@ -736,63 +806,72 @@ pair<int,int> Mapa::NCasillasDelante(unsigned int entidad, int casillas)
   switch ((*entidades)[entidad]->getOrientacion())
   {
   case norte:
-    for (int i=0; i< casillas; i++) {
+    for (int i = 0; i < casillas; i++)
+    {
       f--;
     }
     break;
   case noreste:
-    for (int i=0; i< casillas; i++) {
+    for (int i = 0; i < casillas; i++)
+    {
       f--;
       c++;
     }
     break;
   case este:
-    for (int i=0; i< casillas; i++) {
+    for (int i = 0; i < casillas; i++)
+    {
       c++;
     }
     break;
   case sureste:
-    for (int i=0; i< casillas; i++) {
+    for (int i = 0; i < casillas; i++)
+    {
       f++;
       c++;
     }
     break;
   case sur:
-    for (int i=0; i< casillas; i++) {
+    for (int i = 0; i < casillas; i++)
+    {
       f++;
     }
     break;
   case suroeste:
-    for (int i=0; i< casillas; i++) {
+    for (int i = 0; i < casillas; i++)
+    {
       f++;
       c--;
     }
     break;
   case oeste:
-    for (int i=0; i< casillas; i++) {
+    for (int i = 0; i < casillas; i++)
+    {
       c--;
     }
     break;
   case noroeste:
-    for (int i=0; i< casillas; i++) {
+    for (int i = 0; i < casillas; i++)
+    {
       f--;
       c--;
     }
     break;
   }
 
-  pair <int, int> r;
+  pair<int, int> r;
   r.first = f;
   r.second = c;
   return r;
 }
 
-// Devuelve 0 si es posible correr, 
+// Devuelve 0 si es posible correr,
 //          1 choca contra un muro.
 //          2 cae en un precipicio.
-//          3 choca contra un colaborador.
-//          4 choca contra un aldeano.
-//          5 choca contra un lobo.
+//          3 choca contra un auxiliar.
+//          4 choca contra un excursionista.
+//          5 choca contra un vandalo.
+//          6 choca contra un árbol.
 
 int Mapa::EsPosibleCorrer(unsigned int entidad, int avance_size)
 {
@@ -855,6 +934,8 @@ int Mapa::EsPosibleCorrer(unsigned int entidad, int avance_size)
       accesible = 1;
     else if (mapaCompleto[f[i]][c[i]] == 'P')
       accesible = 2;
+    else if (mapaCompleto[f[i]][c[i]] == 'B')
+      accesible = 6;
     else
     {
       unsigned int j = 0;
@@ -862,9 +943,9 @@ int Mapa::EsPosibleCorrer(unsigned int entidad, int avance_size)
       {
         if ((*entidades)[j]->getFil() == f[i] and (*entidades)[j]->getCol() == c[i] and (*entidades)[j]->getHitbox() and entidad != j)
         {
-          if ((*entidades)[j]->getSubTipo() == colaborador)
+          if ((*entidades)[j]->getSubTipo() == auxiliar)
             accesible = 3;
-          else if ((*entidades)[j]->getSubTipo() == lobo)
+          else if ((*entidades)[j]->getSubTipo() == vandalo)
             accesible = 5;
           else
             accesible = 4;
@@ -876,9 +957,6 @@ int Mapa::EsPosibleCorrer(unsigned int entidad, int avance_size)
 
   return accesible;
 }
-
-
-
 
 int Mapa::casillaOcupadaThrow(unsigned int entidad, int &fil, int &col)
 {
@@ -1020,276 +1098,355 @@ void Mapa::girarCamaraIzquierda(int grados)
   }
 }
 
-  void Mapa::girarCamaraDerecha(int grados)
+void Mapa::girarCamaraDerecha(int grados)
+{
+  if (grados == 90)
   {
-    if (grados == 90)
+    angulo += 90.0;
+    if (angulo >= 360.0)
     {
-      angulo += 90.0;
-      if (angulo >= 360.0)
-      {
-        angulo = 0.0;
-      }
+      angulo = 0.0;
     }
-    else if (grados == 45)
+  }
+  else if (grados == 45)
+  {
+    angulo += 45.0;
+    if (angulo >= 360.0)
     {
-      angulo += 45.0;
-      if (angulo >= 360.0)
-      {
-        angulo = 360.0 - angulo;
-      }
+      angulo = 360.0 - angulo;
+    }
+  }
+}
+
+unsigned char Mapa::entidadEnCelda(unsigned int f, unsigned int c)
+{
+  unsigned char out = '_';
+  bool encontrado = false;
+  unsigned int aux = 0, i = 0;
+
+  while ((i < entidades->size()) and (!encontrado))
+  {
+    if ((*entidades)[i]->getFil() == f and (*entidades)[i]->getCol() == c and (*entidades)[i]->getHitbox())
+    {
+      encontrado = true;
+      aux = i;
+    }
+    i++;
+  }
+
+  if (encontrado and (*entidades)[aux]->getHitbox())
+  {
+    switch ((*entidades)[aux]->getSubTipo())
+    {
+    case rescatador:
+      out = 'r';
+      break;
+    case excursionista:
+      out = 'e';
+      break;
+    case auxiliar:
+      out = 'a';
+      break;
+    case vandalo:
+      out = 'v';
+      break;
     }
   }
 
-  unsigned char Mapa::entidadEnCelda(unsigned int f, unsigned int c)
+  return out;
+}
+
+vector<vector<unsigned char>> Mapa::vision(unsigned int Entidad)
+{
+  unsigned int fil = (*entidades)[Entidad]->getFil();
+  unsigned int col = (*entidades)[Entidad]->getCol();
+  Orientacion orient = (*entidades)[Entidad]->getOrientacion();
+  bool _jugador = (*entidades)[Entidad]->getTipo() == jugador;
+
+  vector<vector<unsigned char>> fov;
+  vector<unsigned char> aux(16);
+  fov.push_back(aux);
+  fov.push_back(aux);
+  fov.push_back(aux);
+
+  fov[0][0] = getCelda(fil, col);       // Terreno
+  fov[1][0] = entidadEnCelda(fil, col); // Agentes
+  fov[2][0] = alturaEnCelda(fil, col);  // Algura
+
+  int index = 1;
+
+  switch (orient)
   {
-    unsigned char out = '_';
-    bool encontrado = false;
-    unsigned int aux = 0, i = 0;
-
-    while ((i < entidades->size()) and (!encontrado))
+  case norte:
+    for (int f = 1; f <= 3; f++)
     {
-      if ((*entidades)[i]->getFil() == f and (*entidades)[i]->getCol() == c and (*entidades)[i]->getHitbox())
+      for (int c = -f; c <= f; c++)
       {
-        encontrado = true;
-        aux = i;
-      }
-      i++;
-    }
-
-    if (encontrado and (*entidades)[aux]->getHitbox())
-    {
-      switch ((*entidades)[aux]->getSubTipo())
-      {
-      case jugador_:
-        out = 'j';
-        break;
-      case aldeano:
-        out = 'a';
-        break;
-     case colaborador:
-        out = 'c';
-        break;        
-      case lobo:
-        out = 'l';
-        break;
+        fov[0][index] = getCelda(fil - f, col + c);
+        fov[1][index] = entidadEnCelda(fil - f, col + c);
+        fov[2][index] = alturaEnCelda(fil - f, col + c);
+        index++;
       }
     }
+    break;
+  case noreste:
+    fov[0][1] = getCelda(fil - 1, col);
+    fov[0][2] = getCelda(fil - 1, col + 1);
+    fov[0][3] = getCelda(fil, col + 1);
 
-    return out;
+    fov[0][4] = getCelda(fil - 2, col);
+    fov[0][5] = getCelda(fil - 2, col + 1);
+    fov[0][6] = getCelda(fil - 2, col + 2);
+    fov[0][7] = getCelda(fil - 1, col + 2);
+    fov[0][8] = getCelda(fil, col + 2);
+
+    fov[0][9] = getCelda(fil - 3, col);
+    fov[0][10] = getCelda(fil - 3, col + 1);
+    fov[0][11] = getCelda(fil - 3, col + 2);
+    fov[0][12] = getCelda(fil - 3, col + 3);
+    fov[0][13] = getCelda(fil - 2, col + 3);
+    fov[0][14] = getCelda(fil - 1, col + 3);
+    fov[0][15] = getCelda(fil, col + 3);
+
+    fov[1][1] = entidadEnCelda(fil - 1, col);
+    fov[1][2] = entidadEnCelda(fil - 1, col + 1);
+    fov[1][3] = entidadEnCelda(fil, col + 1);
+
+    fov[1][4] = entidadEnCelda(fil - 2, col);
+    fov[1][5] = entidadEnCelda(fil - 2, col + 1);
+    fov[1][6] = entidadEnCelda(fil - 2, col + 2);
+    fov[1][7] = entidadEnCelda(fil - 1, col + 2);
+    fov[1][8] = entidadEnCelda(fil, col + 2);
+
+    fov[1][9] = entidadEnCelda(fil - 3, col);
+    fov[1][10] = entidadEnCelda(fil - 3, col + 1);
+    fov[1][11] = entidadEnCelda(fil - 3, col + 2);
+    fov[1][12] = entidadEnCelda(fil - 3, col + 3);
+    fov[1][13] = entidadEnCelda(fil - 2, col + 3);
+    fov[1][14] = entidadEnCelda(fil - 1, col + 3);
+    fov[1][15] = entidadEnCelda(fil, col + 3);
+
+    fov[2][1] = alturaEnCelda(fil - 1, col);
+    fov[2][2] = alturaEnCelda(fil - 1, col + 1);
+    fov[2][3] = alturaEnCelda(fil, col + 1);
+
+    fov[2][4] = alturaEnCelda(fil - 2, col);
+    fov[2][5] = alturaEnCelda(fil - 2, col + 1);
+    fov[2][6] = alturaEnCelda(fil - 2, col + 2);
+    fov[2][7] = alturaEnCelda(fil - 1, col + 2);
+    fov[2][8] = alturaEnCelda(fil, col + 2);
+
+    fov[2][9] = alturaEnCelda(fil - 3, col);
+    fov[2][10] = alturaEnCelda(fil - 3, col + 1);
+    fov[2][11] = alturaEnCelda(fil - 3, col + 2);
+    fov[2][12] = alturaEnCelda(fil - 3, col + 3);
+    fov[2][13] = alturaEnCelda(fil - 2, col + 3);
+    fov[2][14] = alturaEnCelda(fil - 1, col + 3);
+    fov[2][15] = alturaEnCelda(fil, col + 3);
+    break;
+  case este:
+    for (int c = 1; c <= 3; c++)
+    {
+      for (int f = -c; f <= c; f++)
+      {
+        fov[0][index] = getCelda(fil + f, col + c);
+        fov[1][index] = entidadEnCelda(fil + f, col + c);
+        fov[2][index] = alturaEnCelda(fil + f, col + c);
+        index++;
+      }
+    }
+    break;
+  case sureste:
+    fov[0][1] = getCelda(fil, col + 1);
+    fov[0][2] = getCelda(fil + 1, col + 1);
+    fov[0][3] = getCelda(fil + 1, col);
+
+    fov[0][4] = getCelda(fil, col + 2);
+    fov[0][5] = getCelda(fil + 1, col + 2);
+    fov[0][6] = getCelda(fil + 2, col + 2);
+    fov[0][7] = getCelda(fil + 2, col + 1);
+    fov[0][8] = getCelda(fil + 2, col);
+
+    fov[0][9] = getCelda(fil, col + 3);
+    fov[0][10] = getCelda(fil + 1, col + 3);
+    fov[0][11] = getCelda(fil + 2, col + 3);
+    fov[0][12] = getCelda(fil + 3, col + 3);
+    fov[0][13] = getCelda(fil + 3, col + 2);
+    fov[0][14] = getCelda(fil + 3, col + 1);
+    fov[0][15] = getCelda(fil + 3, col);
+
+    fov[1][1] = entidadEnCelda(fil, col + 1);
+    fov[1][2] = entidadEnCelda(fil + 1, col + 1);
+    fov[1][3] = entidadEnCelda(fil + 1, col);
+
+    fov[1][4] = entidadEnCelda(fil, col + 2);
+    fov[1][5] = entidadEnCelda(fil + 1, col + 2);
+    fov[1][6] = entidadEnCelda(fil + 2, col + 2);
+    fov[1][7] = entidadEnCelda(fil + 2, col + 1);
+    fov[1][8] = entidadEnCelda(fil + 2, col);
+
+    fov[2][9] = entidadEnCelda(fil, col + 3);
+    fov[2][10] = entidadEnCelda(fil + 1, col + 3);
+    fov[2][11] = entidadEnCelda(fil + 2, col + 3);
+    fov[2][12] = entidadEnCelda(fil + 3, col + 3);
+    fov[2][13] = entidadEnCelda(fil + 3, col + 2);
+    fov[2][14] = entidadEnCelda(fil + 3, col + 1);
+    fov[2][15] = entidadEnCelda(fil + 3, col);
+
+    fov[2][1] = alturaEnCelda(fil, col + 1);
+    fov[2][2] = alturaEnCelda(fil + 1, col + 1);
+    fov[2][3] = alturaEnCelda(fil + 1, col);
+
+    fov[2][4] = alturaEnCelda(fil, col + 2);
+    fov[2][5] = alturaEnCelda(fil + 1, col + 2);
+    fov[2][6] = alturaEnCelda(fil + 2, col + 2);
+    fov[2][7] = alturaEnCelda(fil + 2, col + 1);
+    fov[2][8] = alturaEnCelda(fil + 2, col);
+
+    fov[2][9] = alturaEnCelda(fil, col + 3);
+    fov[2][10] = alturaEnCelda(fil + 1, col + 3);
+    fov[2][11] = alturaEnCelda(fil + 2, col + 3);
+    fov[2][12] = alturaEnCelda(fil + 3, col + 3);
+    fov[2][13] = alturaEnCelda(fil + 3, col + 2);
+    fov[2][14] = alturaEnCelda(fil + 3, col + 1);
+    fov[2][15] = alturaEnCelda(fil + 3, col);
+
+    break;
+  case sur:
+    for (int f = 1; f <= 3; f++)
+    {
+      for (int c = -f; c <= f; c++)
+      {
+        fov[0][index] = getCelda(fil + f, col - c);
+        fov[1][index] = entidadEnCelda(fil + f, col - c);
+        fov[2][index] = alturaEnCelda(fil + f, col - c);
+        index++;
+      }
+    }
+    break;
+  case suroeste:
+    fov[0][1] = getCelda(fil + 1, col);
+    fov[0][2] = getCelda(fil + 1, col - 1);
+    fov[0][3] = getCelda(fil, col - 1);
+
+    fov[0][4] = getCelda(fil + 2, col);
+    fov[0][5] = getCelda(fil + 2, col - 1);
+    fov[0][6] = getCelda(fil + 2, col - 2);
+    fov[0][7] = getCelda(fil + 1, col - 2);
+    fov[0][8] = getCelda(fil, col - 2);
+
+    fov[0][9] = getCelda(fil + 3, col);
+    fov[0][10] = getCelda(fil + 3, col - 1);
+    fov[0][11] = getCelda(fil + 3, col - 2);
+    fov[0][12] = getCelda(fil + 3, col - 3);
+    fov[0][13] = getCelda(fil + 2, col - 3);
+    fov[0][14] = getCelda(fil + 1, col - 3);
+    fov[0][15] = getCelda(fil, col - 3);
+
+    fov[1][1] = entidadEnCelda(fil + 1, col);
+    fov[1][2] = entidadEnCelda(fil + 1, col - 1);
+    fov[1][3] = entidadEnCelda(fil, col - 1);
+
+    fov[1][4] = entidadEnCelda(fil + 2, col);
+    fov[1][5] = entidadEnCelda(fil + 2, col - 1);
+    fov[1][6] = entidadEnCelda(fil + 2, col - 2);
+    fov[1][7] = entidadEnCelda(fil + 1, col - 2);
+    fov[1][8] = entidadEnCelda(fil, col - 2);
+
+    fov[1][9] = entidadEnCelda(fil + 3, col);
+    fov[1][10] = entidadEnCelda(fil + 3, col - 1);
+    fov[1][11] = entidadEnCelda(fil + 3, col - 2);
+    fov[1][12] = entidadEnCelda(fil + 3, col - 3);
+    fov[1][13] = entidadEnCelda(fil + 2, col - 3);
+    fov[1][14] = entidadEnCelda(fil + 1, col - 3);
+    fov[1][15] = entidadEnCelda(fil, col - 3);
+
+    fov[2][1] = alturaEnCelda(fil + 1, col);
+    fov[2][2] = alturaEnCelda(fil + 1, col - 1);
+    fov[2][3] = alturaEnCelda(fil, col - 1);
+
+    fov[2][4] = alturaEnCelda(fil + 2, col);
+    fov[2][5] = alturaEnCelda(fil + 2, col - 1);
+    fov[2][6] = alturaEnCelda(fil + 2, col - 2);
+    fov[2][7] = alturaEnCelda(fil + 1, col - 2);
+    fov[2][8] = alturaEnCelda(fil, col - 2);
+
+    fov[2][9] = alturaEnCelda(fil + 3, col);
+    fov[2][10] = alturaEnCelda(fil + 3, col - 1);
+    fov[2][11] = alturaEnCelda(fil + 3, col - 2);
+    fov[2][12] = alturaEnCelda(fil + 3, col - 3);
+    fov[2][13] = alturaEnCelda(fil + 2, col - 3);
+    fov[2][14] = alturaEnCelda(fil + 1, col - 3);
+    fov[2][15] = alturaEnCelda(fil, col - 3);
+    break;
+  case oeste:
+    for (int c = 1; c <= 3; c++)
+    {
+      for (int f = -c; f <= c; f++)
+      {
+        fov[0][index] = getCelda(fil - f, col - c);
+        fov[1][index] = entidadEnCelda(fil - f, col - c);
+        fov[2][index] = alturaEnCelda(fil - f, col - c);
+        index++;
+      }
+    }
+    break;
+  case noroeste:
+    fov[0][1] = getCelda(fil, col - 1);
+    fov[0][2] = getCelda(fil - 1, col - 1);
+    fov[0][3] = getCelda(fil - 1, col);
+
+    fov[0][4] = getCelda(fil, col - 2);
+    fov[0][5] = getCelda(fil - 1, col - 2);
+    fov[0][6] = getCelda(fil - 2, col - 2);
+    fov[0][7] = getCelda(fil - 2, col - 1);
+    fov[0][8] = getCelda(fil - 2, col);
+
+    fov[0][9] = getCelda(fil, col - 3);
+    fov[0][10] = getCelda(fil - 1, col - 3);
+    fov[0][11] = getCelda(fil - 2, col - 3);
+    fov[0][12] = getCelda(fil - 3, col - 3);
+    fov[0][13] = getCelda(fil - 3, col - 2);
+    fov[0][14] = getCelda(fil - 3, col - 1);
+    fov[0][15] = getCelda(fil - 3, col);
+
+    fov[1][1] = entidadEnCelda(fil, col - 1);
+    fov[1][2] = entidadEnCelda(fil - 1, col - 1);
+    fov[1][3] = entidadEnCelda(fil - 1, col);
+
+    fov[1][4] = entidadEnCelda(fil, col - 2);
+    fov[1][5] = entidadEnCelda(fil - 1, col - 2);
+    fov[1][6] = entidadEnCelda(fil - 2, col - 2);
+    fov[1][7] = entidadEnCelda(fil - 2, col - 1);
+    fov[1][8] = entidadEnCelda(fil - 2, col);
+
+    fov[1][9] = entidadEnCelda(fil, col - 3);
+    fov[1][10] = entidadEnCelda(fil - 1, col - 3);
+    fov[1][11] = entidadEnCelda(fil - 2, col - 3);
+    fov[1][12] = entidadEnCelda(fil - 3, col - 3);
+    fov[1][13] = entidadEnCelda(fil - 3, col - 2);
+    fov[1][14] = entidadEnCelda(fil - 3, col - 1);
+    fov[1][15] = entidadEnCelda(fil - 3, col);
+
+    fov[2][1] = alturaEnCelda(fil, col - 1);
+    fov[2][2] = alturaEnCelda(fil - 1, col - 1);
+    fov[2][3] = alturaEnCelda(fil - 1, col);
+
+    fov[2][4] = alturaEnCelda(fil, col - 2);
+    fov[2][5] = alturaEnCelda(fil - 1, col - 2);
+    fov[2][6] = alturaEnCelda(fil - 2, col - 2);
+    fov[2][7] = alturaEnCelda(fil - 2, col - 1);
+    fov[2][8] = alturaEnCelda(fil - 2, col);
+
+    fov[2][9] = alturaEnCelda(fil, col - 3);
+    fov[2][10] = alturaEnCelda(fil - 1, col - 3);
+    fov[2][11] = alturaEnCelda(fil - 2, col - 3);
+    fov[2][12] = alturaEnCelda(fil - 3, col - 3);
+    fov[2][13] = alturaEnCelda(fil - 3, col - 2);
+    fov[2][14] = alturaEnCelda(fil - 3, col - 1);
+    fov[2][15] = alturaEnCelda(fil - 3, col);
+    break;
   }
 
-  vector<vector<unsigned char>> Mapa::vision(unsigned int Entidad)
-  {
-    unsigned int fil = (*entidades)[Entidad]->getFil();
-    unsigned int col = (*entidades)[Entidad]->getCol();
-    Orientacion orient = (*entidades)[Entidad]->getOrientacion();
-    bool _jugador = (*entidades)[Entidad]->getTipo() == jugador;
-
-    vector<vector<unsigned char>> fov;
-    vector<unsigned char> aux(16);
-    fov.push_back(aux);
-    fov.push_back(aux);
-    fov[0][0] = getCelda(fil, col);
-    fov[1][0] = entidadEnCelda(fil, col);
-    int index = 1;
-
-    switch (orient)
-    {
-    case norte:
-      for (int f = 1; f <= 3; f++)
-      {
-        for (int c = -f; c <= f; c++)
-        {
-          fov[0][index] = getCelda(fil - f, col + c);
-          fov[1][index] = entidadEnCelda(fil - f, col + c);
-          index++;
-        }
-      }
-      break;
-    case noreste:
-      fov[0][1] = getCelda(fil - 1, col);
-      fov[0][2] = getCelda(fil - 1, col + 1);
-      fov[0][3] = getCelda(fil, col + 1);
-
-      fov[0][4] = getCelda(fil - 2, col);
-      fov[0][5] = getCelda(fil - 2, col + 1);
-      fov[0][6] = getCelda(fil - 2, col + 2);
-      fov[0][7] = getCelda(fil - 1, col + 2);
-      fov[0][8] = getCelda(fil, col + 2);
-
-      fov[0][9] = getCelda(fil - 3, col);
-      fov[0][10] = getCelda(fil - 3, col + 1);
-      fov[0][11] = getCelda(fil - 3, col + 2);
-      fov[0][12] = getCelda(fil - 3, col + 3);
-      fov[0][13] = getCelda(fil - 2, col + 3);
-      fov[0][14] = getCelda(fil - 1, col + 3);
-      fov[0][15] = getCelda(fil, col + 3);
-
-      fov[1][1] = entidadEnCelda(fil - 1, col);
-      fov[1][2] = entidadEnCelda(fil - 1, col + 1);
-      fov[1][3] = entidadEnCelda(fil, col + 1);
-
-      fov[1][4] = entidadEnCelda(fil - 2, col);
-      fov[1][5] = entidadEnCelda(fil - 2, col + 1);
-      fov[1][6] = entidadEnCelda(fil - 2, col + 2);
-      fov[1][7] = entidadEnCelda(fil - 1, col + 2);
-      fov[1][8] = entidadEnCelda(fil, col + 2);
-
-      fov[1][9] = entidadEnCelda(fil - 3, col);
-      fov[1][10] = entidadEnCelda(fil - 3, col + 1);
-      fov[1][11] = entidadEnCelda(fil - 3, col + 2);
-      fov[1][12] = entidadEnCelda(fil - 3, col + 3);
-      fov[1][13] = entidadEnCelda(fil - 2, col + 3);
-      fov[1][14] = entidadEnCelda(fil - 1, col + 3);
-      fov[1][15] = entidadEnCelda(fil, col + 3);
-      break;
-    case este:
-      for (int c = 1; c <= 3; c++)
-      {
-        for (int f = -c; f <= c; f++)
-        {
-          fov[0][index] = getCelda(fil + f, col + c);
-          fov[1][index] = entidadEnCelda(fil + f, col + c);
-          index++;
-        }
-      }
-      break;
-    case sureste:
-      fov[0][1] = getCelda(fil, col + 1);
-      fov[0][2] = getCelda(fil + 1, col + 1);
-      fov[0][3] = getCelda(fil + 1, col);
-
-      fov[0][4] = getCelda(fil, col + 2);
-      fov[0][5] = getCelda(fil + 1, col + 2);
-      fov[0][6] = getCelda(fil + 2, col + 2);
-      fov[0][7] = getCelda(fil + 2, col + 1);
-      fov[0][8] = getCelda(fil + 2, col);
-
-      fov[0][9] = getCelda(fil, col + 3);
-      fov[0][10] = getCelda(fil + 1, col + 3);
-      fov[0][11] = getCelda(fil + 2, col + 3);
-      fov[0][12] = getCelda(fil + 3, col + 3);
-      fov[0][13] = getCelda(fil + 3, col + 2);
-      fov[0][14] = getCelda(fil + 3, col + 1);
-      fov[0][15] = getCelda(fil + 3, col);
-
-      fov[1][1] = entidadEnCelda(fil, col + 1);
-      fov[1][2] = entidadEnCelda(fil + 1, col + 1);
-      fov[1][3] = entidadEnCelda(fil + 1, col);
-
-      fov[1][4] = entidadEnCelda(fil, col + 2);
-      fov[1][5] = entidadEnCelda(fil + 1, col + 2);
-      fov[1][6] = entidadEnCelda(fil + 2, col + 2);
-      fov[1][7] = entidadEnCelda(fil + 2, col + 1);
-      fov[1][8] = entidadEnCelda(fil + 2, col);
-
-      fov[1][9] = entidadEnCelda(fil, col + 3);
-      fov[1][10] = entidadEnCelda(fil + 1, col + 3);
-      fov[1][11] = entidadEnCelda(fil + 2, col + 3);
-      fov[1][12] = entidadEnCelda(fil + 3, col + 3);
-      fov[1][13] = entidadEnCelda(fil + 3, col + 2);
-      fov[1][14] = entidadEnCelda(fil + 3, col + 1);
-      fov[1][15] = entidadEnCelda(fil + 3, col);
-
-      break;
-    case sur:
-      for (int f = 1; f <= 3; f++)
-      {
-        for (int c = -f; c <= f; c++)
-        {
-          fov[0][index] = getCelda(fil + f, col - c);
-          fov[1][index] = entidadEnCelda(fil + f, col - c);
-          index++;
-        }
-      }
-      break;
-    case suroeste:
-      fov[0][1] = getCelda(fil + 1, col);
-      fov[0][2] = getCelda(fil + 1, col - 1);
-      fov[0][3] = getCelda(fil, col - 1);
-
-      fov[0][4] = getCelda(fil + 2, col);
-      fov[0][5] = getCelda(fil + 2, col - 1);
-      fov[0][6] = getCelda(fil + 2, col - 2);
-      fov[0][7] = getCelda(fil + 1, col - 2);
-      fov[0][8] = getCelda(fil, col - 2);
-
-      fov[0][9] = getCelda(fil + 3, col);
-      fov[0][10] = getCelda(fil + 3, col - 1);
-      fov[0][11] = getCelda(fil + 3, col - 2);
-      fov[0][12] = getCelda(fil + 3, col - 3);
-      fov[0][13] = getCelda(fil + 2, col - 3);
-      fov[0][14] = getCelda(fil + 1, col - 3);
-      fov[0][15] = getCelda(fil, col - 3);
-
-      fov[1][1] = entidadEnCelda(fil + 1, col);
-      fov[1][2] = entidadEnCelda(fil + 1, col - 1);
-      fov[1][3] = entidadEnCelda(fil, col - 1);
-
-      fov[1][4] = entidadEnCelda(fil + 2, col);
-      fov[1][5] = entidadEnCelda(fil + 2, col - 1);
-      fov[1][6] = entidadEnCelda(fil + 2, col - 2);
-      fov[1][7] = entidadEnCelda(fil + 1, col - 2);
-      fov[1][8] = entidadEnCelda(fil, col - 2);
-
-      fov[1][9] = entidadEnCelda(fil + 3, col);
-      fov[1][10] = entidadEnCelda(fil + 3, col - 1);
-      fov[1][11] = entidadEnCelda(fil + 3, col - 2);
-      fov[1][12] = entidadEnCelda(fil + 3, col - 3);
-      fov[1][13] = entidadEnCelda(fil + 2, col - 3);
-      fov[1][14] = entidadEnCelda(fil + 1, col - 3);
-      fov[1][15] = entidadEnCelda(fil, col - 3);
-
-      break;
-    case oeste:
-      for (int c = 1; c <= 3; c++)
-      {
-        for (int f = -c; f <= c; f++)
-        {
-          fov[0][index] = getCelda(fil - f, col - c);
-          fov[1][index] = entidadEnCelda(fil - f, col - c);
-          index++;
-        }
-      }
-      break;
-    case noroeste:
-      fov[0][1] = getCelda(fil, col - 1);
-      fov[0][2] = getCelda(fil - 1, col - 1);
-      fov[0][3] = getCelda(fil - 1, col);
-
-      fov[0][4] = getCelda(fil, col - 2);
-      fov[0][5] = getCelda(fil - 1, col - 2);
-      fov[0][6] = getCelda(fil - 2, col - 2);
-      fov[0][7] = getCelda(fil - 2, col - 1);
-      fov[0][8] = getCelda(fil - 2, col);
-
-      fov[0][9] = getCelda(fil, col - 3);
-      fov[0][10] = getCelda(fil - 1, col - 3);
-      fov[0][11] = getCelda(fil - 2, col - 3);
-      fov[0][12] = getCelda(fil - 3, col - 3);
-      fov[0][13] = getCelda(fil - 3, col - 2);
-      fov[0][14] = getCelda(fil - 3, col - 1);
-      fov[0][15] = getCelda(fil - 3, col);
-
-      fov[1][1] = entidadEnCelda(fil, col - 1);
-      fov[1][2] = entidadEnCelda(fil - 1, col - 1);
-      fov[1][3] = entidadEnCelda(fil - 1, col);
-
-      fov[1][4] = entidadEnCelda(fil, col - 2);
-      fov[1][5] = entidadEnCelda(fil - 1, col - 2);
-      fov[1][6] = entidadEnCelda(fil - 2, col - 2);
-      fov[1][7] = entidadEnCelda(fil - 2, col - 1);
-      fov[1][8] = entidadEnCelda(fil - 2, col);
-
-      fov[1][9] = entidadEnCelda(fil, col - 3);
-      fov[1][10] = entidadEnCelda(fil - 1, col - 3);
-      fov[1][11] = entidadEnCelda(fil - 2, col - 3);
-      fov[1][12] = entidadEnCelda(fil - 3, col - 3);
-      fov[1][13] = entidadEnCelda(fil - 3, col - 2);
-      fov[1][14] = entidadEnCelda(fil - 3, col - 1);
-      fov[1][15] = entidadEnCelda(fil - 3, col);
-      break;
-    }
-
-    return fov;
-  }
+  return fov;
+}

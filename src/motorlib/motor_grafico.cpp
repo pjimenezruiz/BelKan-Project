@@ -15,13 +15,14 @@ GLUI *panelSelecMapa, *panelSelecMapaConfig;
 GLUI_Listbox *listbox;
 GLUI_RadioGroup *group;
 GLUI_Button *botonElegirMapa, *botonConfigurar, *botonPaso, *botonEjecucion, *botonEjecutar, *botonSalir;
-GLUI_EditText *editPosColumna, *editPosFila, *editTextPasos, *editTextRetardo;
-GLUI_Checkbox *drawMM, *drawMMVista;
-GLUI_StaticText *lineaVacia, *info0, *info1, *info2, *info3, *info4, *info5, *info6, *info7, *info8, *info9;
-GLUI_Spinner *setup1, *setup20, *setup21, *setup30, *setup31, *setup4, *setup5, *setup60, *setup61;
+GLUI_EditText *editPosColumna, *editPosFila, *editTextPasos, *editTextRetardo, *editGravedad;
+GLUI_Checkbox *drawMM, *drawMMVista, *drawMMWho, *check_Gravedad;
+GLUI_StaticText *lineaVacia, *info0, *info1, *info2, *info3, *info4, *info5, *info6, *info7, *info8, *info9, *info10;
+GLUI_Spinner *setup1, *setup20, *setup21, *setup30, *setup31, *setup4, *setup5, *setup4_5, *setup60, *setup61;
 // GLUI_Spinner *editPosColumna, *editPosFila;
 
-int nPasos = 10, tRetardo = 1, MMmode = 0, MMmode2 = 0, PosColumna = 1, PosFila = 1, tMap = 100, colisiones = 0;
+int nPasos = 10, tRetardo = 1, MMmode = 0, MMmode2 = 0, MMmode3 = 0, PosColumna = 1, PosFila = 1, tMap = 100, colisiones = 0;
+int Gravedad;
 int objtiveSelected = 0;
 int ultimomapaPos = 0, ultimonivel = 0;
 int ObjFil1, ObjFil2, ObjFil3, ObjCol1, ObjCol2, ObjCol3;
@@ -155,7 +156,7 @@ void display_vistPrincipal()
   {
     if (monitor.getMapa() != 0 and MMmode2 != 0)
     {
-      monitor.getMapa()->drawFirstPerson();
+      monitor.getMapa()->drawFirstPerson(MMmode3);
     }
   }
   glPopMatrix();
@@ -178,11 +179,11 @@ void display_vistMiniMapa()
   {
     if (MMmode == 1)
     {
-      monitor.getMapa()->drawMM1(monitor.get_active_objetivos());
+      monitor.getMapa()->drawMM1(monitor.get_active_objetivos(), monitor.getLevel());
     }
     else
     {
-      monitor.getMapa()->drawMM2(monitor.get_active_objetivos());
+      monitor.getMapa()->drawMM2(monitor.get_active_objetivos(), monitor.getLevel());
     }
   }
   glPopMatrix();
@@ -196,6 +197,7 @@ void Descomponer(string str, vector<string> &strs)
   {
     strs.push_back(str.substr(0, str.find('\n')));
     str = str.substr(str.find('\n') + 1, str.length());
+    // cout << str << endl;
   }
 }
 
@@ -247,6 +249,9 @@ void display_vistIU()
       case 9:
         info9->set_text(it->c_str());
         break;
+      case 10:
+        info10->set_text(it->c_str());
+        break;
       }
       i++;
     }
@@ -269,11 +274,16 @@ void update(int valor)
   if (!monitor.there_are_active_objetivo())
   {
     monitor.put_active_objetivos(1);
-  }
-  monitor.get_n_active_objetivo(0, PosFila, PosColumna);
+    monitor.get_n_active_objetivo(0, PosFila, PosColumna, Gravedad);
 
-  editPosFila->set_int_val(PosFila);
-  editPosColumna->set_int_val(PosColumna);
+    editPosFila->set_int_val(PosFila);
+    editPosColumna->set_int_val(PosColumna);
+    check_Gravedad->set_int_val(Gravedad);
+  }
+
+  Gravedad = check_Gravedad->get_int_val();
+  monitor.set_n_active_objetivo(0, PosFila, PosColumna, Gravedad);
+
 
   glutTimerFunc(1, irAlJuego, 0);
 }
@@ -287,8 +297,7 @@ void irAlJuego(int valor)
     botonEjecucion->disable();
     botonEjecutar->disable();
     botonSalir->disable();
-    // editPosColumna->disable();
-    // editPosFila->disable();
+
     editTextPasos->disable();
     editTextRetardo->disable();
     botonSalir->enable();
@@ -310,15 +319,29 @@ void botonAceptarNuevoMapaCB(int valor)
 {
 
   botonElegirMapa->enable();
-  drawMM->disable();
+  if (monitor.getLevel() == 2 or monitor.getLevel() == 3){
+    drawMM->disable();
+  }
+
+  drawMM->enable();
   botonPaso->enable();
   botonEjecucion->enable();
   botonEjecutar->enable();
   botonSalir->enable();
-  // editPosColumna->enable();
-  // editPosFila->enable();
+  if (monitor.getLevel() < 2)
+  {
+    editPosColumna->disable();
+    editPosFila->disable();
+    check_Gravedad->disable();
+  }
+  else
+  {
+    editPosColumna->enable();
+    editPosFila->enable();
+    check_Gravedad->enable();
+  }
   editTextPasos->enable();
-  editTextRetardo->enable();
+  editTextRetardo->disable();
 
   int posF, posC, orienta;
   int SposF, SposC, Sorienta;
@@ -373,9 +396,10 @@ void botonAceptarNuevoMapaCB(int valor)
     ultimonivel = group->get_int_val();
 
     int f, c;
-    monitor.get_n_active_objetivo(0, f, c);
+    int g;
+    monitor.get_n_active_objetivo(0, f, c, g);
     if (monitor.is_a_valid_cell_like_goal(f, c))
-      monitor.put_a_new_objetivo_front(f, c);
+      monitor.put_a_new_objetivo_front(f, c, g);
     else
       monitor.generate_a_objetive();
 
@@ -384,7 +408,7 @@ void botonAceptarNuevoMapaCB(int valor)
     {
       monitor.inicializar(posF, posC, orienta, SposF, SposC, Sorienta);
       tMap = monitor.juegoInicializado();
-      if (ultimonivel == 4)
+      if (ultimonivel == 0 or ultimonivel == 1 or ultimonivel == 4)
       {
         MMmode = 0;
         drawMM->set_int_val(0);
@@ -430,7 +454,7 @@ void botonConfigurarSimOK(int valor)
   botonEjecutar->enable();
   botonSalir->enable();
   editTextPasos->enable();
-  editTextRetardo->enable();
+  editTextRetardo->disable();
   // editPosColumna->disable();
   // editPosColumna->disable();
 
@@ -438,11 +462,12 @@ void botonConfigurarSimOK(int valor)
   monitor.inicializar();
 
   int f, c;
+  int g;
 
   // editPosColumna->enable();
   // editPosFila->enable();
-  monitor.set_n_active_objetivo(0, setup5->get_int_val(), setup4->get_int_val());
-  monitor.get_n_active_objetivo(0, f, c);
+  monitor.set_n_active_objetivo(0, setup5->get_int_val(), setup4->get_int_val(), setup4_5->get_int_val());
+  monitor.get_n_active_objetivo(0, f, c, g);
   // cout << "Entorno grafico f= " << f << "  c= " << c << endl;
   editPosFila->set_int_val(f);
   editPosColumna->set_int_val(c);
@@ -521,11 +546,13 @@ void botonConfigurarNuevoMapaCB(int valor)
 
     int numObj = 1;
     int f, c, kk;
+    int g;
 
-    monitor.get_n_active_objetivo(0, f, c);
+    monitor.get_n_active_objetivo(0, f, c, g);
     ObjFil1 = f;
     ObjCol1 = c;
-    monitor.put_a_new_objetivo_front(f, c);
+    Gravedad = g;
+    monitor.put_a_new_objetivo_front(f, c, g);
 
     monitor.startGame(nivel);
     if (monitor.inicializarJuego())
@@ -533,6 +560,12 @@ void botonConfigurarNuevoMapaCB(int valor)
       monitor.inicializar(posF, posC, orienta, SONposF, SONposC, SONorienta, semilla);
       tMap = monitor.juegoInicializado();
       if (nivel >= 4)
+      {
+        MMmode = 0;
+        drawMM->set_int_val(0);
+        drawMM->enable();
+      }
+      else if (nivel == 0 or nivel == 1)
       {
         MMmode = 0;
         drawMM->set_int_val(0);
@@ -554,7 +587,7 @@ void botonConfigurarNuevoMapaCB(int valor)
   GLUI_Panel *obj_panel = panelSelecMapaConfig->add_panel("Setup");
   setup1 = panelSelecMapaConfig->add_spinner_to_panel(obj_panel, "                Semilla ", GLUI_SPINNER_INT, &semilla);
 
-  GLUI_Panel *obj_subpanel0 = panelSelecMapaConfig->add_panel_to_panel(obj_panel, "Origen Jugador");
+  GLUI_Panel *obj_subpanel0 = panelSelecMapaConfig->add_panel_to_panel(obj_panel, "Pos Rescatador");
   setup30 = panelSelecMapaConfig->add_spinner_to_panel(obj_subpanel0, "            Fila ", GLUI_SPINNER_INT, &posF);
   setup30->set_int_limits(0, num_filas, GLUI_LIMIT_WRAP);
   setup20 = panelSelecMapaConfig->add_spinner_to_panel(obj_subpanel0, "     Columna ", GLUI_SPINNER_INT, &posC);
@@ -562,7 +595,7 @@ void botonConfigurarNuevoMapaCB(int valor)
   setup60 = panelSelecMapaConfig->add_spinner_to_panel(obj_subpanel0, " Orientacion ", GLUI_SPINNER_INT, &orienta);
   setup60->set_int_limits(0, 8, GLUI_LIMIT_WRAP);
 
-  GLUI_Panel *obj_subpanel1 = panelSelecMapaConfig->add_panel_to_panel(obj_panel, "Origen colaborador");
+  GLUI_Panel *obj_subpanel1 = panelSelecMapaConfig->add_panel_to_panel(obj_panel, "Pos Auxiliar");
   setup31 = panelSelecMapaConfig->add_spinner_to_panel(obj_subpanel1, "            Fila ", GLUI_SPINNER_INT, &SONposF);
   setup31->set_int_limits(0, num_filas, GLUI_LIMIT_WRAP);
   setup21 = panelSelecMapaConfig->add_spinner_to_panel(obj_subpanel1, "     Columna ", GLUI_SPINNER_INT, &SONposC);
@@ -571,10 +604,12 @@ void botonConfigurarNuevoMapaCB(int valor)
   setup61->set_int_limits(0, 8, GLUI_LIMIT_WRAP);
 
   GLUI_Panel *obj_subpanel2 = panelSelecMapaConfig->add_panel_to_panel(obj_panel, "Casilla Objetivo");
-  setup5 = panelSelecMapaConfig->add_spinner_to_panel(obj_subpanel2, "        Fila ", GLUI_SPINNER_INT, &ObjFil1);
+  setup5 = panelSelecMapaConfig->add_spinner_to_panel(obj_subpanel2, "        Fil ", GLUI_SPINNER_INT, &ObjFil1);
   setup5->set_int_limits(0, num_filas, GLUI_LIMIT_WRAP);
-  setup4 = panelSelecMapaConfig->add_spinner_to_panel(obj_subpanel2, "    Columna  ", GLUI_SPINNER_INT, &ObjCol1);
+  setup4 = panelSelecMapaConfig->add_spinner_to_panel(obj_subpanel2, "    Col  ", GLUI_SPINNER_INT, &ObjCol1);
   setup4->set_int_limits(0, num_col, GLUI_LIMIT_WRAP);
+  setup4_5 = panelSelecMapaConfig->add_spinner_to_panel(obj_subpanel2, "    Grav  ", GLUI_SPINNER_INT, &Gravedad);
+  setup4_5->set_int_limits(0, 1, GLUI_LIMIT_WRAP);
 
   panelSelecMapaConfig->add_button("Ok", 1, botonConfigurarSimOK);
   panelSelecMapaConfig->add_button("Finish", 1, botonConfigurarSimCANCEL);
@@ -610,11 +645,11 @@ void botonElegirMapaCB(int valor)
 
   GLUI_Panel *obj_panel = panelSelecMapa->add_panel("Nivel");
   group = panelSelecMapa->add_radiogroup_to_panel(obj_panel, &ultimonivel);
-  panelSelecMapa->add_radiobutton_to_group(group, "Nivel 0: Anchura para el agente jugador    ");
-  panelSelecMapa->add_radiobutton_to_group(group, "Nivel 1: Anchura para el agente colaborador  ");
-  panelSelecMapa->add_radiobutton_to_group(group, "Nivel 2: Dijkstra para el agente jugador   ");
-  panelSelecMapa->add_radiobutton_to_group(group, "Nivel 3: A* para el agente colaborador       ");
-  panelSelecMapa->add_radiobutton_to_group(group, "Nivel 4: Reto (Max puntuación en misiones) ");
+  panelSelecMapa->add_radiobutton_to_group(group, "Nivel 0: [R] El Despertar Reactivo    ");
+  panelSelecMapa->add_radiobutton_to_group(group, "Nivel 1: [R] La Cartografia de lo Desconocido  ");
+  panelSelecMapa->add_radiobutton_to_group(group, "Nivel 2: [D] La Busqueda del Camino de Dijkstra   ");
+  panelSelecMapa->add_radiobutton_to_group(group, "Nivel 3: [D] La Ascension del A*uxiliar       ");
+  panelSelecMapa->add_radiobutton_to_group(group, "Nivel 4: Mision de rescate ");
 
   panelSelecMapa->add_button("Ok", 1, botonAceptarNuevoMapaCB);
   panelSelecMapa->add_button("Ok y Configurar", 2, botonConfigurarNuevoMapaCB);
@@ -643,16 +678,26 @@ void setRetardo(int valor)
 
 void setPosColumna(int valor)
 {
+  cout << "Cambiando la posición de la columna\n";
   // monitor.setObjCol(PosColumna);
   // cout << "setPosColumna()-> PosFila= " << PosFila << "  PosColumna= " << PosColumna << endl;
-  monitor.set_n_active_objetivo(0, PosFila, PosColumna);
+  monitor.set_n_active_objetivo(0, PosFila, PosColumna, Gravedad);
 }
 
 void setPosFila(int valor)
 {
   // monitor.setObjFil(PosFila);
   // cout << "setPosFila() -> PosFila= " << PosFila << "  PosColumna= " << PosColumna << endl;
-  monitor.set_n_active_objetivo(0, PosFila, PosColumna);
+  monitor.set_n_active_objetivo(0, PosFila, PosColumna, Gravedad);
+}
+
+void setGravedad(int valor)
+{
+  // monitor.setObjFil(PosFila);
+  // cout << "setPosFila() -> PosFila= " << PosFila << "  PosColumna= " << PosColumna << endl;
+  Gravedad = valor;
+  cout << "Se cambio la gravedad\n";
+  monitor.set_n_active_objetivo(0, PosFila, PosColumna, Gravedad);
 }
 
 void botonSalirCB(int valor)
@@ -770,7 +815,7 @@ void lanzar_motor_grafico(int argc, char **argv)
   glutInitWindowPosition(300, 0);
 
   // Main Window
-  ventanaPrincipal = glutCreateWindow("Practica 2: Agentes Deliberativos/Reactivos. Curso 23/24");
+  ventanaPrincipal = glutCreateWindow("Practica 2: Agentes Deliberativos/Reactivos. Curso 24/25");
   // Main Window callback function
   glutReshapeFunc(reshape);
   glutDisplayFunc(display_ventPrincipal);
@@ -800,33 +845,53 @@ void lanzar_motor_grafico(int argc, char **argv)
   GLUI_Panel *obj_panel2 = panelIU->add_panel("Visualizacion");
 
   MMmode2 = 1;
-  drawMMVista = panelIU->add_checkbox_to_panel(obj_panel2, "Vista en 1ª Persona", &MMmode2);
+  drawMMVista = panelIU->add_checkbox_to_panel(obj_panel2, "1ªPersona", &MMmode2);
   drawMMVista->set_alignment(GLUI_ALIGN_CENTER);
   drawMMVista->enable();
   panelIU->add_column_to_panel(obj_panel2, true);
 
   MMmode = 1;
-  drawMM = panelIU->add_checkbox_to_panel(obj_panel2, "Mostrar mapa", &MMmode);
+  drawMM = panelIU->add_checkbox_to_panel(obj_panel2, "Mapa", &MMmode);
   drawMM->set_alignment(GLUI_ALIGN_CENTER);
-  drawMM->disable();
+  drawMM->enable();
+  panelIU->add_column_to_panel(obj_panel2, true);
+
+  MMmode3 = 0;
+  drawMMWho = panelIU->add_checkbox_to_panel(obj_panel2, "Auxiliar", &MMmode3);
+  drawMMWho->set_alignment(GLUI_ALIGN_CENTER);
+  drawMMWho->enable();
 
   // lineaVacia = panelIU->add_statictext("");
 
   GLUI_Panel *obj_panel = panelIU->add_panel("Ir a...");
-
-  monitor.put_active_objetivos(1);
-
-  monitor.get_n_active_objetivo(0, PosFila, PosColumna);
   // editPosFila = panelIU->add_spinner_to_panel(obj_panel, "   Fila", GLUI_SPINNER_INT, &PosFila);
   // editPosColumna = panelIU->add_spinner_to_panel(obj_panel, "Columna", GLUI_SPINNER_INT, &PosColumna);
 
-  editPosFila = panelIU->add_edittext_to_panel(obj_panel, "Fila", GLUI_EDITTEXT_INT, &PosFila, -1, setPosFila);
-  editPosColumna = panelIU->add_edittext_to_panel(obj_panel, "Columna", GLUI_EDITTEXT_INT, &PosColumna, -1, setPosColumna);
-  setPosColumna(PosColumna);
-  setPosFila(PosFila);
+  if (!monitor.there_are_active_objetivo())
+  {
+    monitor.put_active_objetivos(1);
+  }
+  monitor.get_n_active_objetivo(0, PosFila, PosColumna, Gravedad);
 
-  // editPosFila->set_int_limits(0, 100, GLUI_LIMIT_WRAP);
-  // editPosColumna->set_int_limits(0, 100, GLUI_LIMIT_WRAP);
+  editPosFila = panelIU->add_edittext_to_panel(obj_panel, "Fila", GLUI_EDITTEXT_INT, &PosFila, -1, setPosFila);
+  editPosFila->set_alignment(GLUI_ALIGN_LEFT);
+  editPosFila->set_w(24);
+  panelIU->add_column_to_panel(obj_panel, false);
+  editPosColumna = panelIU->add_edittext_to_panel(obj_panel, "Col", GLUI_EDITTEXT_INT, &PosColumna, -1, setPosColumna);
+  editPosColumna->set_alignment(GLUI_ALIGN_LEFT);
+  editPosColumna->set_w(24);
+  panelIU->add_column_to_panel(obj_panel, false);
+  check_Gravedad = panelIU->add_checkbox_to_panel(obj_panel, "Gravedad", &Gravedad, -1, setGravedad);
+  check_Gravedad->set_alignment(GLUI_ALIGN_CENTER);
+  check_Gravedad->enable();
+  panelIU->add_column_to_panel(obj_panel, false);
+
+  //setPosColumna(PosColumna);
+  //setPosFila(PosFila);
+  //setGravedad(Gravedad);
+  //cout << "Gravedad: " << Gravedad << endl;
+  //  editPosFila->set_int_limits(0, 100, GLUI_LIMIT_WRAP);
+  //  editPosColumna->set_int_limits(0, 100, GLUI_LIMIT_WRAP);
 
   // lineaVacia = panelIU->add_statictext("");
 
@@ -836,11 +901,13 @@ void lanzar_motor_grafico(int argc, char **argv)
   editTextPasos->set_int_val(nPasos);
   editTextPasos->set_int_limits(1, 10000000, GLUI_LIMIT_CLAMP);
   editTextPasos->set_alignment(GLUI_ALIGN_CENTER);
+  editTextPasos->set_w(24);
 
   editTextRetardo = panelIU->add_edittext_to_panel(run_panel, "Retardo", GLUI_EDITTEXT_INT, &tRetardo, -1, setRetardo);
   editTextRetardo->set_int_val(tRetardo);
   editTextRetardo->set_int_limits(0, 10000000, GLUI_LIMIT_CLAMP);
   editTextRetardo->set_alignment(GLUI_ALIGN_CENTER);
+  editTextRetardo->set_w(24);
   setRetardo(tRetardo);
 
   panelIU->add_column_to_panel(run_panel, true);
@@ -875,6 +942,8 @@ void lanzar_motor_grafico(int argc, char **argv)
   info8->set_font(GLUT_BITMAP_8_BY_13);
   info9 = panelIU->add_statictext_to_panel(panelInfo, "");
   info9->set_font(GLUT_BITMAP_8_BY_13);
+  info10 = panelIU->add_statictext_to_panel(panelInfo, "");
+  info10->set_font(GLUT_BITMAP_8_BY_13);
 
   // panelIU->add_separator_to_panel(panelInfo);
 
@@ -885,6 +954,14 @@ void lanzar_motor_grafico(int argc, char **argv)
   botonPaso->disable();
   botonEjecucion->disable();
   botonEjecutar->disable();
+  if (monitor.getLevel() == 0 or monitor.getLevel() == 1)
+  {
+    obj_panel->disable();
+  }
+  else
+  {
+    obj_panel->enable();
+  }
   // editPosColumna->disable();
   // editPosFila->disable();
   editTextPasos->disable();
@@ -901,9 +978,15 @@ void lanzar_motor_grafico_verOnline(int argc, char **argv, EnLinea &argumentos)
   monitor.setMapa(dirMapa);
   tMap = monitor.getMapa()->getNFils();
   monitor.startGame(argumentos.level);
+  MMmode3 = 0;
   if (argumentos.level == 4)
   {
-    MMmode2 = 0;
+    MMmode2 = 1;
+    MMmode = 0;
+  }
+  else if (argumentos.level == 0 or argumentos.level == 1)
+  {
+    MMmode2 = 1;
     MMmode = 0;
   }
   else
@@ -914,8 +997,8 @@ void lanzar_motor_grafico_verOnline(int argc, char **argv, EnLinea &argumentos)
 
   // Posicion inicial del agente
   monitor.setListObj(argumentos.listaObjetivos);
-  monitor.inicializar(argumentos.posInicialJugador.f, argumentos.posInicialJugador.c, argumentos.posInicialJugador.brujula, argumentos.posInicialColaborador.f,
-                      argumentos.posInicialColaborador.c, argumentos.posInicialColaborador.brujula, argumentos.semilla);
+  monitor.inicializar(argumentos.posInicialRescatador.f, argumentos.posInicialRescatador.c, argumentos.posInicialRescatador.brujula, argumentos.posInicialAuxiliar.f,
+                      argumentos.posInicialAuxiliar.c, argumentos.posInicialAuxiliar.brujula, argumentos.semilla);
 
   monitor.get_entidad(0)->setBateria(3000);
   monitor.setPasos(1);
@@ -931,7 +1014,7 @@ void lanzar_motor_grafico_verOnline(int argc, char **argv, EnLinea &argumentos)
   glutInitWindowPosition(300, 0);
 
   // Main Window
-  ventanaPrincipal = glutCreateWindow("Practica 2: Agentes Deliberativos/Reactivos. Curso 23/24. Version BAJO PARAMETROS");
+  ventanaPrincipal = glutCreateWindow("Practica 2: Agentes Deliberativos/Reactivos. Curso 24/25. Version BAJO PARAMETROS");
   // Main Window callback function
   glutReshapeFunc(reshape);
   glutDisplayFunc(display_ventPrincipal);
@@ -960,14 +1043,19 @@ void lanzar_motor_grafico_verOnline(int argc, char **argv, EnLinea &argumentos)
 
   GLUI_Panel *obj_panel2 = panelIU->add_panel("Visualizacion");
 
-  drawMMVista = panelIU->add_checkbox_to_panel(obj_panel2, "Vista en 1ª Persona", &MMmode2);
+  drawMMVista = panelIU->add_checkbox_to_panel(obj_panel2, "1ªPersona", &MMmode2);
   drawMMVista->set_alignment(GLUI_ALIGN_CENTER);
   drawMMVista->enable();
   panelIU->add_column_to_panel(obj_panel2, true);
 
-  drawMM = panelIU->add_checkbox_to_panel(obj_panel2, "Mostrar mapa", &MMmode);
+  drawMM = panelIU->add_checkbox_to_panel(obj_panel2, "Mapa", &MMmode);
   drawMM->set_alignment(GLUI_ALIGN_CENTER);
   drawMM->enable();
+  panelIU->add_column_to_panel(obj_panel2, true);
+
+  drawMMWho = panelIU->add_checkbox_to_panel(obj_panel2, "Auxiliar", &MMmode3);
+  drawMMWho->set_alignment(GLUI_ALIGN_CENTER);
+  drawMMWho->enable();
 
   // lineaVacia = panelIU->add_statictext("");
 
@@ -979,15 +1067,26 @@ void lanzar_motor_grafico_verOnline(int argc, char **argv, EnLinea &argumentos)
   {
     monitor.put_active_objetivos(1);
   }
-  monitor.get_n_active_objetivo(0, PosFila, PosColumna);
+  monitor.get_n_active_objetivo(0, PosFila, PosColumna, Gravedad);
 
   editPosFila = panelIU->add_edittext_to_panel(obj_panel, "Fila", GLUI_EDITTEXT_INT, &PosFila, -1, setPosFila);
-  editPosColumna = panelIU->add_edittext_to_panel(obj_panel, "Columna", GLUI_EDITTEXT_INT, &PosColumna, -1, setPosColumna);
+  editPosFila->set_alignment(GLUI_ALIGN_LEFT);
+  editPosFila->set_w(24);
+  panelIU->add_column_to_panel(obj_panel, false);
+  editPosColumna = panelIU->add_edittext_to_panel(obj_panel, "Col", GLUI_EDITTEXT_INT, &PosColumna, -1, setPosColumna);
+  editPosColumna->set_alignment(GLUI_ALIGN_LEFT);
+  editPosColumna->set_w(24);
+  panelIU->add_column_to_panel(obj_panel, false);
+  check_Gravedad = panelIU->add_checkbox_to_panel(obj_panel, "Gravedad", &Gravedad);
+  check_Gravedad->set_alignment(GLUI_ALIGN_CENTER);
+  check_Gravedad->enable();
+  panelIU->add_column_to_panel(obj_panel, false);
 
-  setPosColumna(PosColumna);
-  setPosFila(PosFila);
-  // editPosFila->set_int_limits(0, 100, GLUI_LIMIT_WRAP);
-  // editPosColumna->set_int_limits(0, 100, GLUI_LIMIT_WRAP);
+  // setPosColumna(PosColumna);
+  // setPosFila(PosFila);
+  // setGravedad(Gravedad);
+  //  editPosFila->set_int_limits(0, 100, GLUI_LIMIT_WRAP);
+  //  editPosColumna->set_int_limits(0, 100, GLUI_LIMIT_WRAP);
 
   // lineaVacia = panelIU->add_statictext("");
 
@@ -997,11 +1096,13 @@ void lanzar_motor_grafico_verOnline(int argc, char **argv, EnLinea &argumentos)
   editTextPasos->set_int_val(nPasos);
   editTextPasos->set_int_limits(1, 10000000, GLUI_LIMIT_CLAMP);
   editTextPasos->set_alignment(GLUI_ALIGN_CENTER);
+  editTextPasos->set_w(24);
 
   editTextRetardo = panelIU->add_edittext_to_panel(run_panel, "Retardo", GLUI_EDITTEXT_INT, &tRetardo, -1, setRetardo);
   editTextRetardo->set_int_val(tRetardo);
   editTextRetardo->set_int_limits(0, 10000000, GLUI_LIMIT_CLAMP);
   editTextRetardo->set_alignment(GLUI_ALIGN_CENTER);
+  editTextRetardo->set_w(24);
   setRetardo(tRetardo);
 
   panelIU->add_column_to_panel(run_panel, true);
@@ -1036,7 +1137,8 @@ void lanzar_motor_grafico_verOnline(int argc, char **argv, EnLinea &argumentos)
   info8->set_font(GLUT_BITMAP_8_BY_13);
   info9 = panelIU->add_statictext_to_panel(panelInfo, "");
   info9->set_font(GLUT_BITMAP_8_BY_13);
-
+  info10 = panelIU->add_statictext_to_panel(panelInfo, "");
+  info10->set_font(GLUT_BITMAP_8_BY_13);
   // panelIU->add_separator_to_panel(panelInfo);
 
   lineaVacia = panelIU->add_statictext("");
@@ -1046,10 +1148,23 @@ void lanzar_motor_grafico_verOnline(int argc, char **argv, EnLinea &argumentos)
   botonPaso->enable();
   botonEjecucion->enable();
   botonEjecutar->enable();
-  // editPosColumna->disable();
-  // editPosFila->disable();
+  if (monitor.getLevel() < 2){
+    editPosColumna->disable();
+    editPosFila->disable();
+    check_Gravedad->disable();
+  }
+  else {
+    editPosColumna->enable();
+    editPosFila->enable();
+    check_Gravedad->enable();
+  }
+
+  if (monitor.getLevel() == 2 or monitor.getLevel() ==3){
+    drawMM->disable();
+  }
+
   editTextPasos->enable();
-  editTextRetardo->enable();
+  editTextRetardo->disable();
 
   // glutTimerFunc(100,update,0);
   glutTimerFunc(100, irAlJuego, 0);

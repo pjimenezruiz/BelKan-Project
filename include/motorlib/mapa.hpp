@@ -14,6 +14,7 @@ class Mapa
 {
 private:
 	std::vector<std::vector<unsigned char>> mapaCompleto;
+	std::vector<std::vector<unsigned char>> mapaAlturas;
 	std::vector<std::vector<bool>> mapaVisible;
 
 	std::vector<Entidad *> *entidades;
@@ -23,7 +24,7 @@ private:
 	void colorCeldaOpuestoMM(unsigned char celda);
 	void colorCeldaOpuestoMM2(unsigned char celda);
 
-	void complementosCelda(unsigned char celda);
+	void complementosCelda(unsigned char celda, unsigned char altura);
 
 	void formaEntidad(unsigned char tipoParam);
 	void OrientacionEntidadMM(Orientacion orienParam);
@@ -39,26 +40,31 @@ private:
 	unsigned int nFils;
 
 public:
-	Mapa(std::vector<std::vector<unsigned char>> mapa, std::vector<Entidad *> *entidades_ptr) : mapaCompleto(mapa), entidades(entidades_ptr)
+	Mapa(std::vector<std::vector<unsigned char>> mapaT, std::vector<std::vector<unsigned char>> mapaA, std::vector<Entidad *> *entidades_ptr) : mapaCompleto(mapaT), mapaAlturas(mapaA),entidades(entidades_ptr)
 	{
-		std::vector<bool> aux(mapa[0].size(), true);
-		for (unsigned int i = 0; i < mapa.size(); i++)
+		std::vector<bool> aux(mapaT[0].size(), true);
+		for (unsigned int i = 0; i < mapaT.size(); i++)
 		{
 			mapaVisible.push_back(aux);
 		}
 
-		nCols = mapa.size();
-		nFils = mapa[0].size();
+		nCols = mapaT.size();
+		nFils = mapaT[0].size();
 	}
 	~Mapa() {}
 
-	void drawMM1(vector<unsigned int> objetivosActivos);
-	void drawMM2(vector<unsigned int> objetivosActivos);
-	void drawFirstPerson();
+	void JoinMapasSuperficie (vector<vector<unsigned char>> &resultado, const vector<vector<unsigned char>> &fuente);
+	void JoinMapasPlan (vector<vector<unsigned char>> &resultado, const vector<vector<unsigned char>> &fuente);
+
+	void drawMM1(vector<unsigned int> objetivosActivos, int level);
+	void drawMM2(vector<unsigned int> objetivosActivos, int level);
+	void drawFirstPerson(int entidad);
 
 	unsigned char entidadEnCelda(unsigned int x, unsigned int y);
 
 	unsigned char getCelda(unsigned int i, unsigned int j) { return mapaCompleto[i][j]; }
+
+	unsigned char alturaEnCelda(unsigned int i, unsigned int j) { return mapaAlturas[i][j];}
 
 	float getMapDepth() { return sqrt(pow(mapaCompleto.size(), 2) + pow(mapaCompleto[0].size(), 2)); }
 

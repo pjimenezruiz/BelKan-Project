@@ -3,7 +3,7 @@
 void Entidad::resetEntidad()
 {
   hitbox = false;
-  if (tipo == jugador or subtipo == colaborador)
+  if (tipo == jugador or subtipo == auxiliar)
   {
     desactivado = 0;
   }
@@ -12,7 +12,7 @@ void Entidad::resetEntidad()
     desactivado = aleatorio(7) + 3;
   }
 
-  colision = false;
+  choque = false;
   colisiones = 0;
   reset = true;
   if (vida != 0)
@@ -110,9 +110,8 @@ unsigned int Entidad::getObjCol(int pos)
 
 Action Entidad::think(int acc, vector<vector<unsigned char>> vision, int level)
 {
-  Action accion = actIDLE;
+  Action accion = IDLE;
   Sensores sensor;
-  bool activ = false;
 
   if (desactivado == 0)
   {
@@ -122,52 +121,47 @@ Action Entidad::think(int acc, vector<vector<unsigned char>> vision, int level)
     sensor.nivel = level;
 
     sensor.vida = vida;
-    sensor.bateria = bateria;
+    sensor.energia = energia;
 
-    sensor.destinoF = destino[0];
-    sensor.destinoC = destino[1];
+    sensor.destinoF = -1;
+    sensor.destinoC = -1;
 
-    sensor.colision = colision;
+    sensor.choque = choque;
     sensor.reset = reset;
 
-    sensor.CLBgoal = GetLlego();
+    sensor.venpaca = false;
+    sensor.gravedad = false;
+
+    sensor.posF = f;
+    sensor.posC = c;
+    sensor.rumbo = orient;
+
     SetLlegoOff();
 
-    if (tipo == jugador)
+    if (tipo == jugador) // Poner los sensores que se activan al jugador
     {
-      if (EntidadColaborador->f == destino[0] and EntidadColaborador->c == destino[1] and (level == 1 or level == 3 or level == 4))
+      // Si estoy en un nivel deliberativo activo que haya un destino (un accidentado)
+      if (level > 1)
       {
-        cout << "Mision alcanzada por el colaborador!" << endl;
+        sensor.destinoF = destino[0];
+        sensor.destinoC = destino[1];
+      }
+    }
+        else if (subtipo == auxiliar) // Poner los sensores que se le activan al auxiliar
+    {
+      if (MeHasLLamado())
+      {
+        sensor.destinoF = destino[0];
+        sensor.destinoC = destino[1];
+        sensor.venpaca = true;
+      }
+    }
 
-        if (level != 4)
-        {
-          done = true;
-          misiones = 1;
-        }
-        else
-        {
-          misiones += 10;
-          completoLosObjetivos = false;
-        }
-      }
-      else if (f == destino[0] and c == destino[1] and (level == 0 or level == 2 or level == 4))
-      {
-        if (level != 4)
-        {
-          done = true;
-          misiones = 1;
-        }
-        else
-        {
-          misiones++;
-          completoLosObjetivos = false;
-        }
-        cout << "Mision alcanzada por el jugador!" << endl;
-      }
-      else if (sensor.bateria == 0)
+   if (tipo == jugador or subtipo == auxiliar){
+      if (sensor.energia == 0)
       {
         done = true;
-        cout << "Se agoto la bateria!" << endl;
+        cout << "Se agoto la energía!" << endl;
       }
       else if (sensor.vida == 0)
       {
@@ -181,50 +175,9 @@ Action Entidad::think(int acc, vector<vector<unsigned char>> vision, int level)
       }
     }
 
-    if (subtipo == colaborador)
-    {
-
-      // Poner en el sensor ActionSent lo que alguno de los otros agentes haya ordenado al colaborador
-      sensor.ActionSent = GetActionSent();
-      // cout <<  "Acción enviada: " << sensor.ActionSent << endl;
-      // SetActionSent(act_CLB_STOP);
-    }
-
-    activ = false;
-
-    if (tipo == jugador)
-    {
-      if (!hasToNotify() and level == 4)
-      {
-        sensor.posF = -1;
-        sensor.posC = -1;
-        sensor.sentido = norte;
-        sensor.CLBposF = -1;
-        sensor.CLBposC = -1;
-        sensor.CLBsentido = norte;
-        setNotifyOff();
-      }
-      else
-      {
-        sensor.posF = f;
-        sensor.posC = c;
-        sensor.sentido = orient;
-        sensor.CLBposF = EntidadColaborador->f;
-        sensor.CLBposC = EntidadColaborador->c;
-        sensor.CLBsentido = EntidadColaborador->orient;
-      }
-    }
-    else
-    {
-      sensor.posF = f;
-      sensor.posC = c;
-      sensor.sentido = orient;
-      sensor.destinoF = destino[0];
-      sensor.destinoC = destino[1];
-    }
-
+    sensor.cota = vision[2];
     sensor.agentes = vision[1];
-    sensor.terreno = vision[0];
+    sensor.superficie = vision[0];
 
     sensor.tiempo = getTiempo() / CLOCKS_PER_SEC;
 
@@ -237,7 +190,7 @@ Action Entidad::think(int acc, vector<vector<unsigned char>> vision, int level)
       else
         accion = static_cast<Action>(acc);
     }
-    colision = false;
+    choque = false;
     reset = false;
     mensaje = false;
   }
@@ -283,17 +236,17 @@ unsigned char Entidad::getSubTipoChar()
 
   switch (subtipo)
   {
-  case jugador_:
-    out = 'j';
+  case rescatador:
+    out = 'r';
     break;
-  case aldeano:
+  case excursionista:
+    out = 'e';
+    break;
+  case auxiliar:
     out = 'a';
     break;
-  case colaborador:
-    out = 'c';
-    break;
-  case lobo:
-    out = 'l';
+  case vandalo:
+    out = 'v';
     break;
   }
 
@@ -305,183 +258,106 @@ void Entidad::fixTiempo_sig_accion(unsigned char celda)
   tiempo_sig_accion = 1;
 }
 
-int Entidad::fixBateria_sig_accion_jugador(unsigned char celdaJugador, Action accion)
+int Entidad::fixBateria_sig_accion_jugador(unsigned char celdaJugador, int difAltura, Action accion)
 {
   bateria_sig_accion = 1;
   switch (accion)
   {
-  case actIDLE:
+  case IDLE:
+
+  case CALL_ON:
+  case CALL_OFF:
     bateria_sig_accion = 0;
     break;
-  case actWALK:
+  case WALK:
     switch (celdaJugador)
     {
     case 'A':
-      if (Has_Bikini()) // Bikini
-        bateria_sig_accion = 10;
-      else
-        bateria_sig_accion = 100;
-      break;
-    case 'B':
-      if (Has_Zapatillas()) // Zapatillas
-        bateria_sig_accion = 15;
-      else
-        bateria_sig_accion = 50;
+      bateria_sig_accion = 100;
+      if (difAltura > 0)
+        bateria_sig_accion += 10;
+      else if (difAltura < 0)
+        bateria_sig_accion -= 10;
       break;
     case 'T':
-      bateria_sig_accion = 2;
+      bateria_sig_accion = 20;
+      if (difAltura > 0)
+        bateria_sig_accion += 5;
+      else if (difAltura < 0)
+        bateria_sig_accion -= 5;
       break;
-    default:
-      bateria_sig_accion = 1;
+    case 'S':
+      bateria_sig_accion = 2;
+      if (difAltura > 0)
+        bateria_sig_accion += 1;
+      else if (difAltura < 0)
+        bateria_sig_accion -= 1;
       break;
     } // Fin switch celdaJugador
     break;
-  case actRUN:
+  case RUN:
+
     switch (celdaJugador)
     {
     case 'A':
-      if (Has_Bikini()) // Bikini
-        bateria_sig_accion = 15;
-      else
-        bateria_sig_accion = 150;
-      break;
-    case 'B':
-      if (Has_Zapatillas()) // Zapatillas
-        bateria_sig_accion = 25;
-      else
-        bateria_sig_accion = 75;
+      bateria_sig_accion = 150;
+      if (difAltura > 0)
+        bateria_sig_accion += 15;
+      else if (difAltura < 0)
+        bateria_sig_accion -= 15;
       break;
     case 'T':
-      bateria_sig_accion = 3;
+      bateria_sig_accion = 35;
+      if (difAltura > 0)
+        bateria_sig_accion += 5;
+      else if (difAltura < 0)
+        bateria_sig_accion -= 5;
       break;
-    default:
+    case 'S':
       bateria_sig_accion = 1;
+      if (difAltura > 0)
+        bateria_sig_accion += 2;
+      else if (difAltura < 0)
+        bateria_sig_accion -= 2;
       break;
     } // Fin switch celdaColaborador
     break;
-  case actTURN_L:
+  case TURN_L:
+
     switch (celdaJugador)
     {
     case 'A':
-      if (Has_Bikini()) // Bikini
-        bateria_sig_accion = 5;
-      else
-        bateria_sig_accion = 30;
-      break;
-    case 'B':
-      if (Has_Zapatillas()) // Zapatillas
-        bateria_sig_accion = 1;
-      else
-        bateria_sig_accion = 7;
+      bateria_sig_accion = 30;
       break;
     case 'T':
-      bateria_sig_accion = 2;
+      bateria_sig_accion = 5;
       break;
-    default:
+    case 'S':
       bateria_sig_accion = 1;
+      break;
       break;
     } // Fin switch celdaJugador
     break;
-  // case actTURN_SL:
-  case actTURN_SR:
+  case TURN_SR:
+
     switch (celdaJugador)
     {
     case 'A':
-      if (Has_Bikini()) // Bikini
-        bateria_sig_accion = 2;
-      else
-        bateria_sig_accion = 10;
+      bateria_sig_accion = 10;
       break;
-    case 'B':
-      if (Has_Zapatillas()) // Zapatillas
-        bateria_sig_accion = 1;
-      else
-        bateria_sig_accion = 5;
-      break;
-    default:
-      bateria_sig_accion = 1;
+    case 'T':
+      bateria_sig_accion = 5;
       break;
     } // Fin switch celdaJugador
     break;
-  case actWHEREIS:
-    bateria_sig_accion = 200;
-    break;
-
-  case act_CLB_STOP:
-  case act_CLB_TURN_SR:
-  case act_CLB_WALK:
-    bateria_sig_accion = 0;
-    break;
-
-  default:
-    bateria_sig_accion = 1;
-    break;
   }
+
   return bateria_sig_accion;
-}
-
-int Entidad::fixBateria_sig_accion_colaborador(unsigned char celdaColaborador, Action accion)
-{
-  switch (accion)
-  {
-  case act_CLB_STOP:
-    bateria_sig_accion_clb = 0;
-    break;
-  case act_CLB_WALK:
-    switch (celdaColaborador)
-    {
-    case 'A':
-      if (EntidadColaborador->Has_Bikini()) // Bikini
-        bateria_sig_accion_clb = 10;
-      else
-        bateria_sig_accion_clb = 100;
-      break;
-    case 'B':
-      if (EntidadColaborador->Has_Zapatillas()) // Zapatillas
-        bateria_sig_accion_clb = 15;
-      else
-        bateria_sig_accion_clb = 50;
-      break;
-    case 'T':
-      bateria_sig_accion_clb = 2;
-      break;
-    default:
-      bateria_sig_accion_clb = 1;
-      break;
-    } // Fin switch celdaJugador
-    break;
-  case act_CLB_TURN_SR:
-    switch (celdaColaborador)
-    {
-    case 'A':
-      if (EntidadColaborador->Has_Bikini()) // Bikini
-        bateria_sig_accion_clb = 2;
-      else
-        bateria_sig_accion_clb = 10;
-      break;
-    case 'B':
-      if (EntidadColaborador->Has_Zapatillas()) // Zapatillas
-        bateria_sig_accion_clb = 1;
-      else
-        bateria_sig_accion_clb = 5;
-      break;
-    default:
-      bateria_sig_accion_clb = 1;
-      break;
-    } // Fin switch celdaColaborador
-    break;
-
-  default:
-    bateria_sig_accion_clb = 1;
-    break;
-  }
-  return bateria_sig_accion_clb;
 }
 
 void Entidad::decBateria_sig_accion()
 {
-  bateria -= bateria_sig_accion;
-  bateria -= bateria_sig_accion_clb;
-  if (bateria < 0)
-    bateria = 0;
+  energia -= bateria_sig_accion;
+  if (energia < 0)
+    energia = 0;
 }

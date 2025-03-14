@@ -5,6 +5,7 @@
 #include "motorlib/mapa.hpp"
 #include "motorlib/util.h"
 #include <glui/glui.h>
+#include <list>
 
 // Clase para monitorizar y controlar la ejecucion de todo el juego
 // Es necesaria si se quiere independizar el dibujado de los modelo del comportamiento de los agentes.
@@ -13,7 +14,7 @@ class MonitorJuego
 {
 private:
   int semilla;
-  list<pair<int, int>> objetivos;
+  list<pair<pair<int, int>,int>> objetivos;
   vector<unsigned int> objetivosActivos;
   vector<bool> alcanzados;
   vector<Entidad *> entidades;
@@ -94,16 +95,16 @@ public:
 
   int getLevel() { return nivel; }
 
-  void setListObj(list<pair<int, int>> &obj) { if (obj.size() > 0) objetivos = obj; }
-  list<pair<int, int>> getListObj() { return objetivos; }
+  void setListObj(list<pair<pair<int, int>,int>> &obj) { if (obj.size() > 0) objetivos = obj; }
+  list<pair<pair<int, int>,int>> getListObj() { return objetivos; }
 
   void generate_a_valid_cell(int &pos_fila, int &pos_col, int &ori);
   bool is_a_valid_cell_like_goal(int f, int c);
   void generate_a_objetive();
-  void put_a_new_objetivo_front(int fila, int columna);
+  void put_a_new_objetivo_front(int fila, int columna, int gravedad);
   void put_active_objetivos(int number);
-  void get_n_active_objetivo(int n, int &posFila, int &posCol);
-  void set_n_active_objetivo(int n, int posFila, int posCol);
+  void get_n_active_objetivo(int n, int &posFila, int &posCol, int &gravedad);
+  void set_n_active_objetivo(int n, int posFila, int posCol, int gravedad);
   bool there_are_active_objetivo();
   int get_number_active_objetivos();
   vector<unsigned int> get_active_objetivos();
@@ -124,6 +125,8 @@ public:
 
   void PintaEstadoMonitor();
   double CoincidenciaConElMapa();
+  double CoincidenciaConElMapaCaminosYSenderos();
+
   string toString();
   void init_casillas_especiales(unsigned int f, unsigned int c, unsigned int fcolab, unsigned int ccolab);
   void reset_objetivos();

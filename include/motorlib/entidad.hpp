@@ -16,10 +16,10 @@ enum Tipo
 };
 enum SubTipo
 {
-  jugador_,
-  colaborador,
-  aldeano,
-  lobo,
+  rescatador,
+  auxiliar,
+  excursionista,
+  vandalo,
   __NONE__
 };
 
@@ -38,8 +38,8 @@ private:
   Objeto3D *modelo;
   Comportamiento *comportamiento;
 
-  // Colision
-  bool colision = false;
+  // choque
+  bool choque = false;
   int colisiones = 0;
   int empujones = 0;
 
@@ -58,12 +58,12 @@ private:
   int muertes_innecesarias = 0;
 
   // bateria
-  int bateria = 3000;
+  int energia = 3000;  //ant: bateria
 
   bool hitbox = true;
   int desactivado = 0;
 
-  Action last_action = actIDLE;
+  Action last_action = IDLE;
   int misiones = 0;
   int puntuacion = 0;
   bool done = false;
@@ -75,14 +75,12 @@ private:
   int nivel = 1;
 
   bool tiene_zapatillas = false;
-  bool tiene_bikini = false;
+  bool venpaca = true;   
 
-  Entidad* EntidadColaborador;
+  //Entidad* EntidadColaborador;
 
 
   vector<vector<unsigned char>> visionAux;
-
-  Action ActionSent;
 
   // Indica si llego a la casilla objetivo
   bool llegoObjetivo;
@@ -103,7 +101,6 @@ public:
       alcanzados.push_back(false);
     vida = v;
     completoLosObjetivos = false;
-    ActionSent = act_CLB_STOP;
     llegoObjetivo = false;
   }
 
@@ -165,7 +162,7 @@ public:
   void resetSignal(){reset = true;}
   void seAostio()
   {
-    colision = true;
+    choque = true;
     colisiones++;
   }
   void notify() { mensaje = true; }
@@ -218,14 +215,15 @@ public:
   void Active() { desactivado = 0; }
 
   void setMensajeOff() { mensaje = false; }
-  void setColisionOff() { colision = false; }
+  void setColisionOff() { choque = false; }
   void setResetOff() { reset = false; }
   void setHitbox(bool valor) { hitbox = valor; }
 
   bool fin() { return done; }
   void resetFin() { done = false; }
+  void setFin(bool valor) { done = valor; }
 
-  bool ready() { return tiempo_sig_accion == 0 and bateria > 0; }
+  bool ready() { return tiempo_sig_accion == 0 and energia > 0; }
   void decTiempo_sig_accion()
   {
     if (tiempo_sig_accion > 0)
@@ -234,32 +232,30 @@ public:
   void fixTiempo_sig_accion(unsigned char celda);
   int getTsig_accion() { return tiempo_sig_accion; }
 
-  int getBateria() const { return bateria; }
-  void setBateria(int valor) { bateria = valor; }
+  int getBateria() const { return energia; }
+  void setBateria(int valor) { energia = valor; }
   void fixBateria_default() { bateria_sig_accion = 0; }
-  int fixBateria_sig_accion_jugador(unsigned char celdaJugador, Action accion);
+  int fixBateria_sig_accion_jugador(unsigned char celdaJugador, int difAltura, Action accion);
   int fixBateria_sig_accion_colaborador(unsigned char celdaColaborador, Action accion);
 
   void decBateria_sig_accion();
   int getBsig_accion() { return bateria_sig_accion; }
   void increaseBateria(int valor)
   {
-    bateria += valor;
-    if (bateria > 3000)
-      bateria = 3000;
+    energia += valor;
+    if (energia > 3000)
+      energia = 3000;
   }
 
   bool Has_Zapatillas() { return tiene_zapatillas; }
-  bool Has_Bikini() { return tiene_bikini; }
   void Cogio_Zapatillas(bool valor) { tiene_zapatillas = valor; }
-  void Cogio_Bikini(bool valor) { tiene_bikini = valor; }
-  void SetActionSent(Action ac){ActionSent = ac;}
-  Action GetActionSent(){return ActionSent;}
+  bool MeHasLLamado() {return venpaca;}
+  void AsignarCall_ON(bool valor){venpaca = valor;}
 
   void set_Nivel(int level) { nivel = level; }
   int get_Nivel() { return nivel; }
 
-  void SetColaborador (Entidad *x) {EntidadColaborador = x;}
+  //void SetColaborador (Entidad *x) {EntidadColaborador = x;}
 
   void SetLlegoOff(){llegoObjetivo = false;}
   void SetLlegoOn(){llegoObjetivo = true;}
