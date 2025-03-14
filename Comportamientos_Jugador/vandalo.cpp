@@ -117,34 +117,34 @@ Action ComportamientoVandalo::think(Sensores sensores)
   {
     bool delanteEsCasillaObjetivo = EsDelanteObjetivo(sensores);
 
-    if (sensores.agentes[2] == 'j' and sensores.superficie[2] != 'X')
+    if (sensores.agentes[2] == 'r' and sensores.superficie[2] != 'X')
     {
       accion = PUSH;
     }
-    else if (sensores.agentes[2] == 'j' and sensores.superficie[2] == 'X')
+    else if (sensores.agentes[2] == 'r' and sensores.superficie[2] == 'X')
     {
       accion = TURN_SR;
     }
-    else if (sensores.agentes[2] == 'l')
+    else if (sensores.agentes[2] == 'v')
     {
       accion = TURN_L;
     }
     else if (!delanteEsCasillaObjetivo and sensores.superficie[2] != 'P' and sensores.superficie[2] != 'M' and sensores.agentes[2] == '_')
     {
-      if (sensores.agentes[6] == 'j' or sensores.agentes[12] == 'j')
+      if (sensores.agentes[6] == 'r' or sensores.agentes[12] == 'r')
       {
         accion = WALK;
       }
-      else if (sensores.agentes[10] == 'j' or sensores.agentes[11] == 'j' or sensores.agentes[13] == 'j' or sensores.agentes[14] == 'j')
+      else if (sensores.agentes[10] == 'r' or sensores.agentes[11] == 'r' or sensores.agentes[13] == 'r' or sensores.agentes[14] == 'r')
       {
         accion = WALK;
       }
     }
-    else if (sensores.agentes[1] == 'j' or sensores.agentes[4] == 'j' or sensores.agentes[9] == 'j')
+    else if (sensores.agentes[1] == 'r' or sensores.agentes[4] == 'r' or sensores.agentes[9] == 'r')
     {
       accion = TURN_L;
     }
-    else if (sensores.agentes[3] == 'j' or sensores.agentes[8] == 'j' or sensores.agentes[15] == 'j')
+    else if (sensores.agentes[3] == 'r' or sensores.agentes[8] == 'r' or sensores.agentes[15] == 'r')
     {
       accion = TURN_SR;
     }
