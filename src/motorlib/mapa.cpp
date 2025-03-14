@@ -1,44 +1,47 @@
 #include "motorlib/mapa.hpp"
 
-void Mapa::colorCeldaMM(unsigned char celda)
+void Mapa::colorCeldaMM(unsigned char celda, unsigned char altura)
 {
+  float h = altura - '0';
+  float brillo = 0.5f + (h / 10.0f); // Escalado de brillo (0.5 a 1.0)
   switch (celda)
   {
   case 'P': // Precipicio
-    glColor3f(0.15, 0.15, 0.15);
+    glColor3f(0.15 * brillo, 0.15 * brillo, 0.15 * brillo);
     break;
-  case 'B': // Arbol
-    glColor3f(0.0, 1.0, 0.0);
+  case 'B': // Árbol
+    glColor3f(0.0, 1.0 * brillo, 0.0);
     break;
   case 'C': // Camino
-    glColor3f(0.3, 0.25, 0.2);
+    glColor3f(0.3 * brillo, 0.25 * brillo, 0.2 * brillo);
     break;
   case 'A': // Agua
-    glColor3f(0.0, 0.0, 1.0);
+    glColor3f(0.0, 0.0, 1.0 * brillo);
     break;
   case 'S': // Sendero
-    glColor3f(0.6, 0.6, 0.6);
+    glColor3f(0.6 * brillo, 0.6 * brillo, 0.6 * brillo);
     break;
-  case 'M': // Obstaculo
-    glColor3f(0.6, 0.0, 0.0);
+  case 'M': // Obstáculo
+    glColor3f(0.6 * brillo, 0.0, 0.0);
     break;
   case 'T': // Matorral
-    glColor3f(0.0, 0.8, 0.0);
+    glColor3f(0.4 * brillo, 0.8 * brillo, 0.0);
     break;
   case 'K': // Bikini
-    glColor3f(1.0, 1.0, 0.0);
+    glColor3f(1.0 * brillo, 1.0 * brillo, 0.0);
     break;
   case 'Z': // Zapatillas
-    glColor3f(0.0, 1.0, 0.3);
+    glColor3f(0.0, 1.0 * brillo, 0.3 * brillo);
     break;
-  case 'D': //
-    glColor3f(0.3, 0.15, 0.5);
+  case 'D':
+    glColor3f(0.3 * brillo, 0.15 * brillo, 0.5 * brillo);
     break;
   case 'X': // Puesto Base
-    glColor3f(1.0, 0.0, 1.0);
+    glColor3f(1.0 * brillo, 0.0, 1.0 * brillo);
     break;
   default:
     glColor3f(1.0, 1.0, 1.0);
+    // glColor3f(1.0 * brillo, 1.0 * brillo, 1.0 * brillo);
     break;
   }
 }
@@ -280,7 +283,7 @@ void Mapa::drawMM1(vector<unsigned int> objetivosActivos, int level)
       glTranslatef(((GLfloat)i - (GLfloat)filaMed) * ratio, ((GLfloat)colMed - (GLfloat)j) * ratio, 0.0);
       glScalef(ratio, ratio, ratio);
 
-      colorCeldaMM(mapaCompleto[j][i]);
+      colorCeldaMM(mapaCompleto[j][i], mapaAlturas[j][i]);
 
       glBegin(GL_QUADS);
       glVertex3f(-0.5, -0.5, 0.0);
@@ -398,22 +401,29 @@ void Mapa::drawMM1(vector<unsigned int> objetivosActivos, int level)
   }
 }
 
-void Mapa::JoinMapasSuperficie (vector<vector<unsigned char>> &resultado, const vector<vector<unsigned char>> &fuente){
-  for (int i=0; i<resultado.size(); i++){
-    for (int j=0; j<resultado[0].size(); j++){
-      if (resultado[i][j] == '?') resultado[i][j] = fuente[i][j];
+void Mapa::JoinMapasSuperficie(vector<vector<unsigned char>> &resultado, const vector<vector<unsigned char>> &fuente)
+{
+  for (int i = 0; i < resultado.size(); i++)
+  {
+    for (int j = 0; j < resultado[0].size(); j++)
+    {
+      if (resultado[i][j] == '?')
+        resultado[i][j] = fuente[i][j];
     }
   }
 }
 
-void Mapa::JoinMapasPlan (vector<vector<unsigned char>> &resultado, const vector<vector<unsigned char>> &fuente){
-  for (int i=0; i<resultado.size(); i++){
-    for (int j=0; j<resultado[0].size(); j++){
-      if (resultado[i][j] == 0) resultado[i][j] = fuente[i][j];
+void Mapa::JoinMapasPlan(vector<vector<unsigned char>> &resultado, const vector<vector<unsigned char>> &fuente)
+{
+  for (int i = 0; i < resultado.size(); i++)
+  {
+    for (int j = 0; j < resultado[0].size(); j++)
+    {
+      if (resultado[i][j] == 0)
+        resultado[i][j] = fuente[i][j];
     }
   }
 }
-
 
 void Mapa::drawMM2(vector<unsigned int> objetivosActivos, int level)
 {
@@ -447,7 +457,7 @@ void Mapa::drawMM2(vector<unsigned int> objetivosActivos, int level)
       glTranslatef(((GLfloat)i - (GLfloat)filaMed) * ratio, ((GLfloat)colMed - (GLfloat)j) * ratio, 0.0);
       glScalef(ratio, ratio, ratio);
 
-      colorCeldaMM(mapaSuperficie[j][i]);
+      colorCeldaMM(mapaSuperficie[j][i], mapaAlturas[j][i]);
 
       switch (mapaSuperficie[j][i])
       {
@@ -660,7 +670,7 @@ void Mapa::drawFirstPerson(int entidad)
       {
         glTranslatef(((GLfloat)filaMed - (GLfloat)i - 1) * 5.0, 0.25, ((GLfloat)colMed - (GLfloat)j - 1) * 5.0);
 
-        colorCeldaMM(mapaCompleto[j][i]);
+        colorCeldaMM(mapaCompleto[j][i], mapaAlturas[j][i]);
 
         glScalef(5.0, 0.4, 5.0);
         glutSolidCube(1.0);
@@ -669,7 +679,7 @@ void Mapa::drawFirstPerson(int entidad)
       {
         glTranslatef(((GLfloat)filaMed - (GLfloat)i - 1) * 5.0, -0.5, ((GLfloat)colMed - (GLfloat)j - 1) * 5.0);
 
-        colorCeldaMM(mapaCompleto[j][i]);
+        colorCeldaMM(mapaCompleto[j][i], mapaAlturas[j][i]);
 
         glScalef(5.0, 0.4, 5.0);
         glutSolidCube(1.0);
@@ -678,7 +688,7 @@ void Mapa::drawFirstPerson(int entidad)
       {
         glTranslatef(((GLfloat)filaMed - (GLfloat)i - 1) * 5.0, 0.0, ((GLfloat)colMed - (GLfloat)j - 1) * 5.0);
 
-        colorCeldaMM(mapaCompleto[j][i]);
+        colorCeldaMM(mapaCompleto[j][i], mapaAlturas[j][i]);
 
         glScalef(5.0, 0.4, 5.0);
         glutSolidCube(1.0);

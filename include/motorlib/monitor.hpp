@@ -10,6 +10,7 @@
 // Clase para monitorizar y controlar la ejecucion de todo el juego
 // Es necesaria si se quiere independizar el dibujado de los modelo del comportamiento de los agentes.
 
+
 class MonitorJuego
 {
 private:
@@ -121,7 +122,7 @@ public:
   int get_semilla() const { return semilla; }
   void set_semilla(int seed) { semilla = seed; }
 
-  bool CanISeeColaborador(int num_entidad);
+  bool CanHeSeesThisCell(int num_entidad, int fil, int col);
 
   void PintaEstadoMonitor();
   double CoincidenciaConElMapa();
@@ -130,6 +131,8 @@ public:
   string toString();
   void init_casillas_especiales(unsigned int f, unsigned int c, unsigned int fcolab, unsigned int ccolab);
   void reset_objetivos();
+
+  string strAccion(Action accion);
 
 };
 #endif

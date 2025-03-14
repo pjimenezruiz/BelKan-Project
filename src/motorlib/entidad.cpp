@@ -28,7 +28,7 @@ int Entidad::isMemberObjetivo(unsigned int paramF, unsigned int paramC)
   int pos = -1;
   for (int i = 0; i < num_destinos and pos == -1; i++)
   {
-    if (destino[2 * i] == paramF and destino[2 * i + 1] == paramC)
+    if (destino[3 * i] == paramF and destino[3 * i + 1] == paramC)
     {
       pos = i;
     }
@@ -79,7 +79,7 @@ void Entidad::anularAlcanzados()
 void Entidad::setObjetivos(vector<unsigned int> v)
 {
   destino = v;
-  num_destinos = destino.size() / 2;
+  num_destinos = destino.size() / 3;
   for (int i = 0; i < num_destinos; i++)
   {
     alcanzados[i] = false;
@@ -89,7 +89,7 @@ void Entidad::setObjetivos(vector<unsigned int> v)
 unsigned int Entidad::getObjFil(int pos)
 {
   if (pos < num_destinos)
-    return destino[2 * pos];
+    return destino[3 * pos];
   else
   {
     std::cout << "Error en getObjFil: intento de acceso a una posición de objetivo que no existe\n";
@@ -100,13 +100,25 @@ unsigned int Entidad::getObjFil(int pos)
 unsigned int Entidad::getObjCol(int pos)
 {
   if (pos < num_destinos)
-    return destino[2 * pos + 1];
+    return destino[3 * pos + 1];
   else
   {
     std::cout << "Error en getObjFil: intento de acceso a una posición de objetivo que no existe\n";
     exit(1);
   }
 }
+
+unsigned int Entidad::getObjPri(int pos)
+{
+  if (pos < num_destinos)
+    return destino[3 * pos + 2];
+  else
+  {
+    std::cout << "Error en getObjPri: intento de acceso a una posición de objetivo que no existe\n";
+    exit(1);
+  }
+}
+
 
 Action Entidad::think(int acc, vector<vector<unsigned char>> vision, int level)
 {
@@ -129,14 +141,12 @@ Action Entidad::think(int acc, vector<vector<unsigned char>> vision, int level)
     sensor.choque = choque;
     sensor.reset = reset;
 
-    sensor.venpaca = false;
+    sensor.venpaca = venpaca;
     sensor.gravedad = false;
 
     sensor.posF = f;
     sensor.posC = c;
     sensor.rumbo = orient;
-
-    SetLlegoOff();
 
     if (tipo == jugador) // Poner los sensores que se activan al jugador
     {
@@ -146,18 +156,25 @@ Action Entidad::think(int acc, vector<vector<unsigned char>> vision, int level)
         sensor.destinoF = destino[0];
         sensor.destinoC = destino[1];
       }
+
+      if (level == 4 and sensor.posF == destino[0] and sensor.posC == destino[1]){
+        sensor.gravedad = (destino[2] == 1);
+      }
     }
-        else if (subtipo == auxiliar) // Poner los sensores que se le activan al auxiliar
+    else if (subtipo == auxiliar) // Poner los sensores que se le activan al auxiliar
     {
-      if (MeHasLLamado())
-      {
+      if (level > 1){
         sensor.destinoF = destino[0];
-        sensor.destinoC = destino[1];
-        sensor.venpaca = true;
+        sensor.destinoC = destino[1];  
+        if (level == 4 and !MeHasLLamado()){
+          sensor.destinoF = -1;
+          sensor.destinoC = -1;
+        }      
       }
     }
 
-   if (tipo == jugador or subtipo == auxiliar){
+    if (tipo == jugador or subtipo == auxiliar)
+    {
       if (sensor.energia == 0)
       {
         done = true;

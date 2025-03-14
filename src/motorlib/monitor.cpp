@@ -128,7 +128,7 @@ void MonitorJuego::generate_a_objetive()
     pos_col = aleatorio(getMapa()->getNCols() - 1);
 
     celdaRand = getMapa()->getCelda(pos_fila, pos_col);
-  } while ((celdaRand == 'P' or celdaRand == 'M'));
+  } while ((celdaRand == 'P' or celdaRand == 'M' or celdaRand == 'B'));
 
   pair<pair<int, int>, bool> punto;
   punto.first.first = pos_fila;
@@ -284,17 +284,73 @@ void MonitorJuego::decPasos()
   }
 }
 
-bool MonitorJuego::CanISeeColaborador(int num_entidad)
+bool MonitorJuego::CanHeSeesThisCell(int num_entidad, int fil, int col)
 {
-  vector<unsigned char> agentes;
-  agentes = getMapa()->vision(num_entidad)[1];
-  int i = 1;
-  while (i < 16 and agentes[i] != 'c')
-  {
-    i++;
-  }
+	bool salida = false;
+  int agenteF = get_entidad(num_entidad)->getFil();
+  int agenteC = get_entidad(num_entidad)->getCol();
+  Orientacion agenteRumbo = get_entidad(num_entidad)->getOrientacion();
 
-  return (i != 16);
+	int df = agenteF - fil;
+	int dc = agenteC - col;
+	int absf = (df < 0 ? -df : df);
+	int absc = (dc < 0 ? -dc : dc);
+
+	if (absf > 3 or absc > 3)
+		return false;
+
+	switch (agenteRumbo)
+	{
+	case norte:
+		if (agenteF > fil and absc <= absf)
+		{
+			salida = true;
+		}
+		break;
+	case noreste:
+		if (agenteF >= fil and dc <= 0)
+		{
+			salida = true;
+		}
+		break;
+	case este:
+		if (agenteC < col and absf <= absc)
+		{
+			salida = true;
+		}
+		break;
+	case sureste:
+		if (agenteF <= fil and dc <= 0)
+		{
+			salida = true;
+		}
+		break;
+	case sur:
+		if (agenteF < fil and absc <= absf)
+		{
+			salida = true;
+		}
+		break;
+	case suroeste:
+		if (agenteF <= fil and dc >= 0)
+		{
+			salida = true;
+		}
+		break;
+	case oeste:
+		if (agenteC > col and absf <= absc)
+		{
+			salida = true;
+		}
+		break;
+	case noroeste:
+		if (agenteF >= fil and dc >= 0)
+		{
+			salida = true;
+		}
+		break;
+	}
+	return salida;
 }
 
 void MonitorJuego::inicializar(int pos_filaJ, int pos_colJ, int brujJ, int pos_filaS, int pos_colS, int brujS, int seed)
@@ -537,7 +593,7 @@ double MonitorJuego::CoincidenciaConElMapaCaminosYSenderos()
   return (aciertos * 100.0 / totalCasillas);
 }
 
-string strAccion(Action accion)
+string MonitorJuego::strAccion(Action accion)
 {
   string out = "";
 

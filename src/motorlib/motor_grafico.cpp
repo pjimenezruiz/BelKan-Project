@@ -271,7 +271,7 @@ void update(int valor)
   glutPostRedisplay();
   // glutKeyboardFunc(keyboard);
 
-  if (!monitor.there_are_active_objetivo())
+  if (ObjFil1 != PosFila or ObjCol1 != PosColumna)
   {
     monitor.put_active_objetivos(1);
     monitor.get_n_active_objetivo(0, PosFila, PosColumna, Gravedad);
@@ -279,11 +279,13 @@ void update(int valor)
     editPosFila->set_int_val(PosFila);
     editPosColumna->set_int_val(PosColumna);
     check_Gravedad->set_int_val(Gravedad);
+
+    ObjFil1 = PosFila;
+    ObjCol1 = PosColumna;
   }
 
   Gravedad = check_Gravedad->get_int_val();
-  monitor.set_n_active_objetivo(0, PosFila, PosColumna, Gravedad);
-
+  // monitor.set_n_active_objetivo(0, PosFila, PosColumna, Gravedad);
 
   glutTimerFunc(1, irAlJuego, 0);
 }
@@ -319,7 +321,8 @@ void botonAceptarNuevoMapaCB(int valor)
 {
 
   botonElegirMapa->enable();
-  if (monitor.getLevel() == 2 or monitor.getLevel() == 3){
+  if (monitor.getLevel() == 2 or monitor.getLevel() == 3)
+  {
     drawMM->disable();
   }
 
@@ -682,6 +685,9 @@ void setPosColumna(int valor)
   // monitor.setObjCol(PosColumna);
   // cout << "setPosColumna()-> PosFila= " << PosFila << "  PosColumna= " << PosColumna << endl;
   monitor.set_n_active_objetivo(0, PosFila, PosColumna, Gravedad);
+  ObjFil1 = PosFila;
+  ObjCol1 = PosColumna;
+  ObjFil2 = Gravedad;
 }
 
 void setPosFila(int valor)
@@ -689,6 +695,9 @@ void setPosFila(int valor)
   // monitor.setObjFil(PosFila);
   // cout << "setPosFila() -> PosFila= " << PosFila << "  PosColumna= " << PosColumna << endl;
   monitor.set_n_active_objetivo(0, PosFila, PosColumna, Gravedad);
+  ObjFil1 = PosFila;
+  ObjCol1 = PosColumna;
+  ObjFil2 = Gravedad;
 }
 
 void setGravedad(int valor)
@@ -698,6 +707,9 @@ void setGravedad(int valor)
   Gravedad = valor;
   cout << "Se cambio la gravedad\n";
   monitor.set_n_active_objetivo(0, PosFila, PosColumna, Gravedad);
+  ObjFil1 = PosFila;
+  ObjCol1 = PosColumna;
+  ObjFil2 = Gravedad;
 }
 
 void botonSalirCB(int valor)
@@ -886,12 +898,12 @@ void lanzar_motor_grafico(int argc, char **argv)
   check_Gravedad->enable();
   panelIU->add_column_to_panel(obj_panel, false);
 
-  //setPosColumna(PosColumna);
-  //setPosFila(PosFila);
-  //setGravedad(Gravedad);
-  //cout << "Gravedad: " << Gravedad << endl;
-  //  editPosFila->set_int_limits(0, 100, GLUI_LIMIT_WRAP);
-  //  editPosColumna->set_int_limits(0, 100, GLUI_LIMIT_WRAP);
+  // setPosColumna(PosColumna);
+  // setPosFila(PosFila);
+  // setGravedad(Gravedad);
+  // cout << "Gravedad: " << Gravedad << endl;
+  //   editPosFila->set_int_limits(0, 100, GLUI_LIMIT_WRAP);
+  //   editPosColumna->set_int_limits(0, 100, GLUI_LIMIT_WRAP);
 
   // lineaVacia = panelIU->add_statictext("");
 
@@ -1148,18 +1160,21 @@ void lanzar_motor_grafico_verOnline(int argc, char **argv, EnLinea &argumentos)
   botonPaso->enable();
   botonEjecucion->enable();
   botonEjecutar->enable();
-  if (monitor.getLevel() < 2){
+  if (monitor.getLevel() < 2)
+  {
     editPosColumna->disable();
     editPosFila->disable();
     check_Gravedad->disable();
   }
-  else {
+  else
+  {
     editPosColumna->enable();
     editPosFila->enable();
     check_Gravedad->enable();
   }
 
-  if (monitor.getLevel() == 2 or monitor.getLevel() ==3){
+  if (monitor.getLevel() == 2 or monitor.getLevel() == 3)
+  {
     drawMM->disable();
   }
 

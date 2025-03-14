@@ -75,7 +75,7 @@ private:
   int nivel = 1;
 
   bool tiene_zapatillas = false;
-  bool venpaca = true;   
+  bool venpaca = false;   
 
   //Entidad* EntidadColaborador;
 
@@ -145,6 +145,8 @@ public:
   unsigned int getNumObj() { return num_destinos; }
   unsigned int getObjFil(int pos);
   unsigned int getObjCol(int pos);
+  unsigned int getObjPri(int pos);
+
 
   Tipo getTipo() { return tipo; }
   SubTipo getSubTipo() { return subtipo; }

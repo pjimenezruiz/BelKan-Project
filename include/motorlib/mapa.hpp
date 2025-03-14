@@ -20,7 +20,7 @@ private:
 	std::vector<Entidad *> *entidades;
 
 	// Atributos necesarios y tal y cual...
-	void colorCeldaMM(unsigned char celda);
+	void colorCeldaMM(unsigned char celda, unsigned char color);
 	void colorCeldaOpuestoMM(unsigned char celda);
 	void colorCeldaOpuestoMM2(unsigned char celda);
 
