@@ -11,31 +11,28 @@ bool actuacionRescatador(unsigned char celdaJ_inicial, unsigned char celdaJ_fin,
   unsigned char celdaRand;
   bool salida = false;
   int gasto;
-  int error = 0; // 0 = NoError | 1 = NoEnergiaSuficiente | 2 = Colision 
-
+  int error = 0; // 0 = NoError | 1 = NoEnergiaSuficiente | 2 = Colision
 
   // Primero evaluo si hay energía suficiente para realizar las acciones del rescatador.
 
   gasto = monitor.get_entidad(0)->fixBateria_sig_accion_jugador(celdaJ_inicial, difAltJ, accion);
 
-  //std::cout << "Accion Jugador: " << accion << "   Accion Colaborador: " << accionColaborador << endl;
-  //std::cout << "Gasto Jugador: " << gasto_jugador << "   Gasto Colaborador: " << gasto_colaborador << "   Gasto Total: " << gasto << endl;
-
+  // std::cout << "Accion Jugador: " << accion << "   Accion Colaborador: " << accionColaborador << endl;
+  // std::cout << "Gasto Jugador: " << gasto_jugador << "   Gasto Colaborador: " << gasto_colaborador << "   Gasto Total: " << gasto << endl;
 
   if (gasto > monitor.get_entidad(0)->getBateria())
   {
     cout << "La batería necesaria para las acciones seleccionadas superó a la batería disponible\n";
     error = 1;
     monitor.get_entidad(0)->setBateria(0);
-    
+
     return false;
   }
-
 
   switch (accion)
   {
   case WALK:
-    if (monitor.getMapa()->casillaOcupada(0) == -1 and ( abs(difAltJ)<=1) or (monitor.get_entidad(0)->Has_Zapatillas() and (abs(difAltJ)<=2) ) ) // Casilla destino desocupada        monitor.get_entidad(0)->seAostio();
+    if (monitor.getMapa()->casillaOcupada(0) == -1 and (abs(difAltJ) <= 1) or (monitor.get_entidad(0)->Has_Zapatillas() and (abs(difAltJ) <= 2))) // Casilla destino desocupada        monitor.get_entidad(0)->seAostio();
     {
       switch (celdaJ_fin)
       {
@@ -69,27 +66,46 @@ bool actuacionRescatador(unsigned char celdaJ_inicial, unsigned char celdaJ_fin,
         salida = true;
         break;
       }
-      if (monitor.get_entidad(0)->isMemberObjetivo(x, y) != -1 and monitor.get_entidad(0)->allLessOneObjetivosAlcanzados())
+      if (monitor.getLevel() > 1)
       {
-        // acaba de completar todos los objetivos.
-        cout << "-----> Casilla objetivo alcanzada por el rescatador\n";
-        monitor.get_entidad(0)->setCompletoLosObjetivos();
-        if (monitor.getLevel() == 4)
+        if (monitor.getLevel() != 4 and monitor.get_entidad(0)->isMemberObjetivo(x, y) != -1)
         {
+          // acaba de completar todos los objetivos.
+          cout << "-----> Casilla objetivo alcanzada por el rescatador\n";
+          // El rescatador llegó a la casilla objetivo.
+          monitor.get_entidad(0)->setCompletoLosObjetivos();
+          monitor.get_entidad(0)->incrMisiones();
+
+          monitor.finalizarJuego();
+          monitor.setMostrarResultados(true);
+        }
+        else if (monitor.getLevel() == 4 and monitor.get_entidad(0)->isMemberObjetivo(x, y) != -1 and !monitor.get_entidad(0)->getObjPri(0))
+        {
+          cout << "Llega al objetivo y la prioridad no es grave\n";
+          monitor.get_entidad(0)->setCompletoLosObjetivos();
           monitor.put_active_objetivos(1);
           monitor.get_entidad(0)->anularAlcanzados();
           monitor.get_entidad(0)->incrMisiones();
-          monitor.get_entidad(0)->incrPuntuacion(1);
+          monitor.get_entidad(0)->incrPuntuacion(2);
+          monitor.get_entidad(1)->AsignarCall_ON(false); // Se deja de llamar al auxiliar
+
           for (unsigned int i = 0; i < monitor.numero_entidades(); i++)
           {
             monitor.get_entidad(i)->setObjetivos(monitor.get_active_objetivos());
           }
         }
-        else if (monitor.getLevel() == 2)
+        else if (monitor.getLevel() == 4 and monitor.get_entidad(0)->isMemberObjetivo(x, y) != -1 and monitor.CanHeSeesThisCell(1, monitor.get_entidad(0)->getObjFil(0), monitor.get_entidad(0)->getObjCol(0)))
         {
-          // El rescatador llegó a la casilla objetivo.
-          monitor.finalizarJuego();
-          monitor.setMostrarResultados(true);
+          monitor.put_active_objetivos(1);
+          monitor.get_entidad(0)->anularAlcanzados();
+          monitor.get_entidad(0)->incrMisiones();
+          monitor.get_entidad(0)->incrPuntuacion(7);
+          monitor.get_entidad(1)->AsignarCall_ON(false); // Se deja de llamar al auxiliar
+
+          for (unsigned int i = 0; i < monitor.numero_entidades(); i++)
+          {
+            monitor.get_entidad(i)->setObjetivos(monitor.get_active_objetivos());
+          }
         }
       }
       // monitor.get_entidad(0)->fixBateria_sig_accion(celdaJ_inicial, accion);
@@ -133,12 +149,12 @@ bool actuacionRescatador(unsigned char celdaJ_inicial, unsigned char celdaJ_fin,
     }
     else // Choca o cae por la diferencia de altura entre casilla inicial y final
     {
-      if (difAltJ>0) // Choca porque la casilla destino está demasiado alta.
+      if (difAltJ > 0) // Choca porque la casilla destino está demasiado alta.
       {
         monitor.get_entidad(0)->seAostio();
         std::cout << "El rescatador ha chocado. Casilla destino demasiado alta\n";
       }
-      else           // Se cae porque la casilla destino está demasiado baja.
+      else // Se cae porque la casilla destino está demasiado baja.
       {
         std::cout << "El rescatador ha dado un salto al vacío. Demasiada diferencia de altura entre casillas\n";
         monitor.get_entidad(0)->resetEntidad();
@@ -146,7 +162,6 @@ bool actuacionRescatador(unsigned char celdaJ_inicial, unsigned char celdaJ_fin,
         monitor.finalizarJuego();
         monitor.setMostrarResultados(true);
       }
-
     }
     break;
 
@@ -155,43 +170,43 @@ bool actuacionRescatador(unsigned char celdaJ_inicial, unsigned char celdaJ_fin,
 
     if (posibleElAvance != 0)
     { // No se ha podido avanzar.
-      switch (posibleElAvance){
-        case 1: // Muro
-          monitor.get_entidad(0)->seAostio();
-          std::cout << "El jugador ha chocado con un muro\n";
-          break;
-
-        case 6: // Arbol
-          monitor.get_entidad(0)->seAostio();
-          std::cout << "El jugador ha chocado con un árbol\n";
-          break;
-
-        case 2: // Precipicio
-          std::cout << "Se cayó por un precipicio\n";
-          monitor.get_entidad(0)->resetEntidad();
-          monitor.get_entidad(0)->setHitbox(true);
-          monitor.finalizarJuego();
-          monitor.setMostrarResultados(true);
+      switch (posibleElAvance)
+      {
+      case 1: // Muro
+        monitor.get_entidad(0)->seAostio();
+        std::cout << "El jugador ha chocado con un muro\n";
         break;
 
-        case 3: // auxiliar
-          monitor.get_entidad(0)->seAostio();
-          std::cout << "El jugador ha chocado con el auxiliar\n";
-          break;
+      case 6: // Arbol
+        monitor.get_entidad(0)->seAostio();
+        std::cout << "El jugador ha chocado con un árbol\n";
+        break;
 
-        case 4: // excursionista
-          monitor.get_entidad(0)->seAostio();
-          std::cout << "El jugador ha chocado con un excursionista\n";
-          break;
+      case 2: // Precipicio
+        std::cout << "Se cayó por un precipicio\n";
+        monitor.get_entidad(0)->resetEntidad();
+        monitor.get_entidad(0)->setHitbox(true);
+        monitor.finalizarJuego();
+        monitor.setMostrarResultados(true);
+        break;
 
-        case 5: // vandalo
-          monitor.get_entidad(0)->seAostio();
-          std::cout << "El jugador ha chocado con un vandalo\n";
-          break;
+      case 3: // auxiliar
+        monitor.get_entidad(0)->seAostio();
+        std::cout << "El jugador ha chocado con el auxiliar\n";
+        break;
+
+      case 4: // excursionista
+        monitor.get_entidad(0)->seAostio();
+        std::cout << "El jugador ha chocado con un excursionista\n";
+        break;
+
+      case 5: // vandalo
+        monitor.get_entidad(0)->seAostio();
+        std::cout << "El jugador ha chocado con un vandalo\n";
+        break;
       }
-
     }
-    else if (posibleElAvance == 0 and ( abs(difAltJ)<=1) or (monitor.get_entidad(0)->Has_Zapatillas() and (abs(difAltJ)<=2) ) )
+    else if (posibleElAvance == 0 and (abs(difAltJ) <= 1) or (monitor.get_entidad(0)->Has_Zapatillas() and (abs(difAltJ) <= 2)))
     { // Es posible correr
       switch (celdaJ_fin)
       {
@@ -213,41 +228,57 @@ bool actuacionRescatador(unsigned char celdaJ_inicial, unsigned char celdaJ_fin,
         salida = true;
         break;
       }
-      if (monitor.get_entidad(0)->isMemberObjetivo(x, y) != -1 and monitor.get_entidad(0)->allLessOneObjetivosAlcanzados())
+      if (monitor.getLevel() > 1)
       {
-        cout << "-----> Casilla objetivo alcanzada por el jugador\n";
-        // acaba de completar todos los objetivos.
-        monitor.get_entidad(0)->setCompletoLosObjetivos();
-        if (monitor.getLevel() == 4)
+        if (monitor.getLevel() != 4 and monitor.get_entidad(0)->isMemberObjetivo(x, y) != -1)
         {
+          // acaba de completar todos los objetivos.
+          cout << "-----> Casilla objetivo alcanzada por el rescatador\n";
+          // El rescatador llegó a la casilla objetivo.
+          monitor.get_entidad(0)->setCompletoLosObjetivos();
+          monitor.get_entidad(0)->incrMisiones();
+
+          monitor.finalizarJuego();
+          monitor.setMostrarResultados(true);
+        }
+        else if (monitor.getLevel() == 4 and monitor.get_entidad(0)->isMemberObjetivo(x, y) != -1 and !monitor.get_entidad(0)->getObjPri(0))
+        {
+          cout << "Llega al objetivo y la prioridad no es grave\n";
+          monitor.get_entidad(0)->setCompletoLosObjetivos();
           monitor.put_active_objetivos(1);
           monitor.get_entidad(0)->anularAlcanzados();
           monitor.get_entidad(0)->incrMisiones();
-          monitor.get_entidad(0)->incrPuntuacion(1);
+          monitor.get_entidad(0)->incrPuntuacion(2);
+          monitor.get_entidad(1)->AsignarCall_ON(false); // Se deja de llamar al auxiliar
+
           for (unsigned int i = 0; i < monitor.numero_entidades(); i++)
           {
             monitor.get_entidad(i)->setObjetivos(monitor.get_active_objetivos());
           }
         }
-        else if (monitor.getLevel() == 0 or monitor.getLevel() == 2)
+        else if (monitor.getLevel() == 4 and monitor.get_entidad(0)->isMemberObjetivo(x, y) != -1 and monitor.CanHeSeesThisCell(1, monitor.get_entidad(0)->getObjFil(0), monitor.get_entidad(0)->getObjCol(0)))
         {
-          // El jugador llegó a la casilla objetivo.
-          monitor.finalizarJuego();
-          monitor.setMostrarResultados(true);
-        }
-        else {
-          cout << "-----> En este nivel es el auxiliar el que debe llegar a la casilla objetivo\n";
-        }
+          monitor.put_active_objetivos(1);
+          monitor.get_entidad(0)->anularAlcanzados();
+          monitor.get_entidad(0)->incrMisiones();
+          monitor.get_entidad(0)->incrPuntuacion(7);
+          monitor.get_entidad(1)->AsignarCall_ON(false); // Se deja de llamar al auxiliar
 
+          for (unsigned int i = 0; i < monitor.numero_entidades(); i++)
+          {
+            monitor.get_entidad(i)->setObjetivos(monitor.get_active_objetivos());
+          }
+        }
       }
     }
-    else { // Se puede correr pero el desnivel de altura entre casillas es demasiado grande.
-      if (difAltJ>0) // Choca porque la casilla destino está demasiado alta.
+    else
+    {                  // Se puede correr pero el desnivel de altura entre casillas es demasiado grande.
+      if (difAltJ > 0) // Choca porque la casilla destino está demasiado alta.
       {
         monitor.get_entidad(0)->seAostio();
         std::cout << "El rescatador ha chocado. Casilla destino demasiado alta\n";
       }
-      else           // Se cae porque la casilla destino está demasiado baja.
+      else // Se cae porque la casilla destino está demasiado baja.
       {
         std::cout << "El rescatador ha dado un salto al vacío. Demasiada diferencia de altura entre casillas\n";
         monitor.get_entidad(0)->resetEntidad();
@@ -261,7 +292,20 @@ bool actuacionRescatador(unsigned char celdaJ_inicial, unsigned char celdaJ_fin,
   case TURN_SR:
     monitor.get_entidad(0)->giro45Dch();
     monitor.girarJugadorDerecha(45);
-   // monitor.get_entidad(1)->SetActionSent(IDLE);
+    // monitor.get_entidad(1)->SetActionSent(IDLE);
+    if (monitor.getLevel() == 4 and monitor.get_entidad(0)->getFil() == monitor.get_entidad(0)->getObjFil(0) and monitor.get_entidad(0)->getCol() == monitor.get_entidad(0)->getObjCol(0) and monitor.CanHeSeesThisCell(1, monitor.get_entidad(0)->getObjFil(0), monitor.get_entidad(0)->getObjCol(0)))
+    {
+      monitor.put_active_objetivos(1);
+      monitor.get_entidad(0)->anularAlcanzados();
+      monitor.get_entidad(0)->incrMisiones();
+      monitor.get_entidad(0)->incrPuntuacion(7);
+      monitor.get_entidad(1)->AsignarCall_ON(false); // Se deja de llamar al auxiliar
+
+      for (unsigned int i = 0; i < monitor.numero_entidades(); i++)
+      {
+        monitor.get_entidad(i)->setObjetivos(monitor.get_active_objetivos());
+      }
+    }
     salida = false;
     break;
 
@@ -269,7 +313,22 @@ bool actuacionRescatador(unsigned char celdaJ_inicial, unsigned char celdaJ_fin,
     monitor.get_entidad(0)->giroIzq();
     monitor.girarJugadorIzquierda(90);
     // monitor.get_entidad(0)->fixBateria_sig_accion(celdaJ_inicial, accion);
-    //monitor.get_entidad(1)->SetActionSent(IDLE);
+    // monitor.get_entidad(1)->SetActionSent(IDLE);
+
+    if (monitor.getLevel() == 4 and monitor.get_entidad(0)->getFil() == monitor.get_entidad(0)->getObjFil(0) and monitor.get_entidad(0)->getCol() == monitor.get_entidad(0)->getObjCol(0) and monitor.CanHeSeesThisCell(1, monitor.get_entidad(0)->getObjFil(0), monitor.get_entidad(0)->getObjCol(0)))
+    {
+      monitor.put_active_objetivos(1);
+      monitor.get_entidad(0)->anularAlcanzados();
+      monitor.get_entidad(0)->incrMisiones();
+      monitor.get_entidad(0)->incrPuntuacion(7);
+      monitor.get_entidad(1)->AsignarCall_ON(false); // Se deja de llamar al auxiliar
+
+      for (unsigned int i = 0; i < monitor.numero_entidades(); i++)
+      {
+        monitor.get_entidad(i)->setObjetivos(monitor.get_active_objetivos());
+      }
+    }
+
     salida = true;
     break;
 
@@ -283,24 +342,49 @@ bool actuacionRescatador(unsigned char celdaJ_inicial, unsigned char celdaJ_fin,
 
   case CALL_OFF:
     monitor.get_entidad(1)->AsignarCall_ON(false);
+    cout << "El rescatador anula la llamada al Auxiliar\n";
+    if (monitor.getLevel() == 4 and monitor.get_entidad(0)->getFil() == monitor.get_entidad(0)->getObjFil(0) and monitor.get_entidad(0)->getCol() == monitor.get_entidad(0)->getObjCol(0))
+    {
+      cout << "El rescatador anula la operación de rescate\n";
+      monitor.put_active_objetivos(1);
+      monitor.get_entidad(0)->anularAlcanzados();
+      monitor.get_entidad(0)->incrMisiones();
+      monitor.get_entidad(0)->incrPuntuacion(1);
+      for (unsigned int i = 0; i < monitor.numero_entidades(); i++)
+      {
+        monitor.get_entidad(i)->setObjetivos(monitor.get_active_objetivos());
+      }
+    }
+
     break;
 
   case IDLE:
-    if (celdaJ_inicial == 'X')
+    if (celdaJ_inicial == 'X' and monitor.getLevel() == 4 or monitor.getLevel() == 1)
     { // Casilla Rosa (Recarga)
       monitor.get_entidad(0)->increaseBateria(10);
     }
     // monitor.get_entidad(0)->fixBateria_sig_accion(celdaJ_inicial, accion);
-    //monitor.get_entidad(1)->SetActionSent(IDLE);
+    // monitor.get_entidad(1)->SetActionSent(IDLE);
+
+    if (monitor.getLevel() == 4 and monitor.get_entidad(0)->getFil() == monitor.get_entidad(0)->getObjFil(0) and monitor.get_entidad(0)->getCol() == monitor.get_entidad(0)->getObjCol(0) and monitor.CanHeSeesThisCell(1, monitor.get_entidad(0)->getObjFil(0), monitor.get_entidad(0)->getObjCol(0)))
+    {
+      monitor.put_active_objetivos(1);
+      monitor.get_entidad(0)->anularAlcanzados();
+      monitor.get_entidad(0)->incrMisiones();
+      monitor.get_entidad(0)->incrPuntuacion(7);
+      monitor.get_entidad(1)->AsignarCall_ON(false); // Se deja de llamar al auxiliar
+      for (unsigned int i = 0; i < monitor.numero_entidades(); i++)
+      {
+        monitor.get_entidad(i)->setObjetivos(monitor.get_active_objetivos());
+      }
+    }
 
     salida = true;
     break;
-
   }
 
   return salida;
 }
-
 
 bool actuacionAuxiliar(unsigned char celdaJ_inicial, unsigned char celdaJ_fin, int difAltJ, Action accion, unsigned int x, unsigned int y)
 {
@@ -309,31 +393,28 @@ bool actuacionAuxiliar(unsigned char celdaJ_inicial, unsigned char celdaJ_fin, i
   unsigned char celdaRand;
   bool salida = false;
   int gasto;
-  int error = 0; // 0 = NoError | 1 = NoEnergiaSuficiente | 2 = Colision 
-
+  int error = 0; // 0 = NoError | 1 = NoEnergiaSuficiente | 2 = Colision
 
   // Primero evaluo si hay energía suficiente para realizar las acciones del rescatador.
 
   gasto = monitor.get_entidad(1)->fixBateria_sig_accion_jugador(celdaJ_inicial, difAltJ, accion);
 
-  //std::cout << "Accion Jugador: " << accion << "   Accion Colaborador: " << accionColaborador << endl;
-  //std::cout << "Gasto Jugador: " << gasto_jugador << "   Gasto Colaborador: " << gasto_colaborador << "   Gasto Total: " << gasto << endl;
-
+  // std::cout << "Accion Jugador: " << accion << "   Accion Colaborador: " << accionColaborador << endl;
+  // std::cout << "Gasto Jugador: " << gasto_jugador << "   Gasto Colaborador: " << gasto_colaborador << "   Gasto Total: " << gasto << endl;
 
   if (gasto > monitor.get_entidad(1)->getBateria())
   {
     cout << "La batería necesaria para las acciones seleccionadas superó a la batería disponible\n";
     error = 1;
     monitor.get_entidad(1)->setBateria(0);
-    
+
     return false;
   }
-
 
   switch (accion)
   {
   case WALK:
-    if (monitor.getMapa()->casillaOcupada(1) == -1 and abs(difAltJ)<=1 ) // Casilla destino desocupada
+    if (monitor.getMapa()->casillaOcupada(1) == -1 and abs(difAltJ) <= 1) // Casilla destino desocupada
     {
       std::cout << "\tLa casilla destino está desocupada y la altura es correcta\n";
 
@@ -344,15 +425,17 @@ bool actuacionAuxiliar(unsigned char celdaJ_inicial, unsigned char celdaJ_fin, i
         std::cout << "El auxiliar ha chocado con un obstáculo\n";
         break;
       case 'B': // Arbol
-        if (!monitor.get_entidad(1)->Has_Zapatillas()){
-            monitor.get_entidad(0)->seAostio();
-            std::cout << "El auxiliar ha chocado contra un árbol\n";
+        if (!monitor.get_entidad(1)->Has_Zapatillas())
+        {
+          monitor.get_entidad(0)->seAostio();
+          std::cout << "El auxiliar ha chocado contra un árbol\n";
         }
-        else{
-            monitor.get_entidad(1)->setPosicion(x, y);
-            salida = true;
+        else
+        {
+          monitor.get_entidad(1)->setPosicion(x, y);
+          salida = true;
         }
-      break;
+        break;
       case 'P': // Precipicio
         std::cout << "Se cayó por un precipicio\n";
         monitor.get_entidad(1)->resetEntidad();
@@ -377,40 +460,28 @@ bool actuacionAuxiliar(unsigned char celdaJ_inicial, unsigned char celdaJ_fin, i
       }
       if (monitor.get_entidad(1)->isMemberObjetivo(x, y) != -1 and monitor.get_entidad(1)->allLessOneObjetivosAlcanzados())
       {
-        // acaba de completar todos los objetivos.
-        cout << "-----> Casilla objetivo alcanzada por el auxiliar\n";
-        monitor.get_entidad(0)->setCompletoLosObjetivos();
-        if (monitor.getLevel() == 4)
-        {
-          monitor.put_active_objetivos(1);
-          monitor.get_entidad(0)->anularAlcanzados();
-          monitor.get_entidad(0)->incrMisiones();
-          monitor.get_entidad(0)->incrPuntuacion(1);
-          for (unsigned int i = 0; i < monitor.numero_entidades(); i++)
-          {
-            monitor.get_entidad(i)->setObjetivos(monitor.get_active_objetivos());
-          }
-        }
-        else if (monitor.getLevel() == 3)
+        if (monitor.getLevel() == 3)
         {
           // El auxiliar llegó a la casilla objetivo.
           monitor.finalizarJuego();
           monitor.setMostrarResultados(true);
         }
-        else {
+        else
+        {
           cout << "-----> En este nivel es el auxiliar el que debe llegar a la casilla objetivo\n";
         }
       }
       // monitor.get_entidad(0)->fixBateria_sig_accion(celdaJ_inicial, accion);
     }
-    else if (abs(difAltJ)>1){    
-      std::cout << "Demasiada altura entre las casillas\n";     // Hay demasiada altura entre casillas
-      if (difAltJ>0) // Choca porque la casilla destino está demasiado alta.
+    else if (abs(difAltJ) > 1)
+    {
+      std::cout << "Demasiada altura entre las casillas\n"; // Hay demasiada altura entre casillas
+      if (difAltJ > 0)                                      // Choca porque la casilla destino está demasiado alta.
       {
         monitor.get_entidad(1)->seAostio();
         std::cout << "El auxiliar ha chocado. Casilla destino demasiado alta\n";
       }
-      else           // Se cae porque la casilla destino está demasiado baja.
+      else // Se cae porque la casilla destino está demasiado baja.
       {
         std::cout << "El auxiliar ha dado un salto al vacío. Demasiada diferencia de altura entre casillas\n";
         monitor.get_entidad(1)->resetEntidad();
@@ -418,7 +489,6 @@ bool actuacionAuxiliar(unsigned char celdaJ_inicial, unsigned char celdaJ_fin, i
         monitor.finalizarJuego();
         monitor.setMostrarResultados(true);
       }
-
     }
     else if (monitor.getMapa()->casillaOcupada(1) != -1) // Choca contra otro agente
     {
@@ -459,10 +529,10 @@ bool actuacionAuxiliar(unsigned char celdaJ_inicial, unsigned char celdaJ_fin, i
       }
       salida = false;
     }
-    
+
     break;
 
-  case RUN: 
+  case RUN:
     std::cout << "La acción RUN no es aplicable al agente auxiliar\n";
     break;
 
@@ -473,35 +543,33 @@ bool actuacionAuxiliar(unsigned char celdaJ_inicial, unsigned char celdaJ_fin, i
     break;
 
   case TURN_L:
-    std::cout << "La acción TRUN_L no es aplicable al agente auxiliar\n";
+    std::cout << "La acción TURN_L no es aplicable al agente auxiliar\n";
     break;
 
   case PUSH:
-    std::cout << "La acción PUSH no es aplicable al agente auxiliar\n";    
+    std::cout << "La acción PUSH no es aplicable al agente auxiliar\n";
     break;
 
   case CALL_ON:
-      std::cout << "La acción CALL_ON no es aplicable al agente auxiliar\n";
+    std::cout << "La acción CALL_ON no es aplicable al agente auxiliar\n";
     break;
 
   case CALL_OFF:
-      std::cout << "La acción CALL_OFF no es aplicable al agente auxiliar\n";
+    std::cout << "La acción CALL_OFF no es aplicable al agente auxiliar\n";
     break;
 
   case IDLE:
-    if (celdaJ_inicial == 'X')
+    if (celdaJ_inicial == 'X' and (monitor.getLevel() == 1 or monitor.getLevel() == 4))
     { // Casilla Rosa (Recarga)
       monitor.get_entidad(1)->increaseBateria(10);
     }
 
     salida = true;
     break;
-
   }
 
   return salida;
 }
-
 
 bool actuacionNPC(unsigned int entidad, unsigned char celda, Action accion, unsigned int x, unsigned int y)
 {
@@ -522,10 +590,10 @@ bool actuacionNPC(unsigned int entidad, unsigned char celda, Action accion, unsi
       }
       break;
 
-    /*case TURN_R:
-      monitor.get_entidad(entidad)->giroDch();
-      out = true;
-      break;*/
+      /*case TURN_R:
+        monitor.get_entidad(entidad)->giroDch();
+        out = true;
+        break;*/
 
     case TURN_L:
       monitor.get_entidad(entidad)->giroIzq();
@@ -537,10 +605,10 @@ bool actuacionNPC(unsigned int entidad, unsigned char celda, Action accion, unsi
       out = true;
       break;
 
-    /*case TURN_SL:
-      monitor.get_entidad(entidad)->giro45Izq();
-      out = true;
-      break;*/
+      /*case TURN_SL:
+        monitor.get_entidad(entidad)->giro45Izq();
+        out = true;
+        break;*/
     }
     break;
 
@@ -555,10 +623,10 @@ bool actuacionNPC(unsigned int entidad, unsigned char celda, Action accion, unsi
       }
       break;
 
-    /*case TURN_R:
-      monitor.get_entidad(entidad)->giroDch();
-      out = true;
-      break;*/
+      /*case TURN_R:
+        monitor.get_entidad(entidad)->giroDch();
+        out = true;
+        break;*/
 
     case TURN_L:
       monitor.get_entidad(entidad)->giroIzq();
@@ -570,10 +638,10 @@ bool actuacionNPC(unsigned int entidad, unsigned char celda, Action accion, unsi
       out = true;
       break;
 
-    /*case TURN_SL:
-      monitor.get_entidad(entidad)->giro45Izq();
-      out = true;
-      break;*/
+      /*case TURN_SL:
+        monitor.get_entidad(entidad)->giro45Izq();
+        out = true;
+        break;*/
 
     case PUSH: // Esta accion para un vandalo es empujar equivalente a un actPUSH
       std::cout << "Recibido un empujón por un vandalo\n";
@@ -667,7 +735,8 @@ bool actuacion(unsigned int entidad, Action accion)
 
   // Calculamos cual es la celda justo frente a la entidad
   pair<unsigned int, unsigned int> coord = NextCoordenadas(f, c, monitor.get_entidad(entidad)->getOrientacion());
-  if (accion == RUN and monitor.get_entidad(entidad)->getSubTipo() == rescatador) coord = NextCoordenadas(coord.first, coord.second, monitor.get_entidad(entidad)->getOrientacion());
+  if (accion == RUN and monitor.get_entidad(entidad)->getSubTipo() == rescatador)
+    coord = NextCoordenadas(coord.first, coord.second, monitor.get_entidad(entidad)->getOrientacion());
   f = coord.first;
   c = coord.second;
   celda_fin = monitor.getMapa()->getCelda(f, c);
@@ -703,19 +772,19 @@ void nucleo_motor_juego(MonitorJuego &monitor, int acc)
   unsigned char celdaRand;
 
   // Para borrar despues
-/*  for (int fila = 0; fila < monitor.getMapa()->getNFils(); fila++){
-    for (int col = 0; col < monitor.getMapa()->getNCols(); col++){
-      if (monitor.getMapa()->getCelda(fila,col) == 'C')
-        std::cout << monitor.getMapa()->alturaEnCelda(fila,col);
-      else 
-        std::cout << " ";
+  /*  for (int fila = 0; fila < monitor.getMapa()->getNFils(); fila++){
+      for (int col = 0; col < monitor.getMapa()->getNCols(); col++){
+        if (monitor.getMapa()->getCelda(fila,col) == 'C')
+          std::cout << monitor.getMapa()->alturaEnCelda(fila,col);
+        else
+          std::cout << " ";
+      }
+      cout << endl;
     }
     cout << endl;
-  }
-  cout << endl;
 
-  char ch;*/
-  //cin >> ch;
+    char ch;*/
+  // cin >> ch;
 
   //====================================
 
@@ -752,7 +821,6 @@ void nucleo_motor_juego(MonitorJuego &monitor, int acc)
     accion = monitor.get_entidad(i)->think(acc, estado[i], monitor.getLevel());
     clock_t t1 = clock();
 
-
     monitor.get_entidad(i)->addTiempo(t1 - t0);
     monitor.get_entidad(i)->setLastAction(accion);
     actuacion(i, accion);
@@ -774,19 +842,20 @@ void nucleo_motor_juego(MonitorJuego &monitor, int acc)
   }
 
   // Verificar si se dan las condiciones de salida con éxito de la simulacion
-  if (!monitor.get_entidad(0)->fin() and !monitor.get_entidad(1)->fin()){
+  if (!monitor.get_entidad(0)->fin() and !monitor.get_entidad(1)->fin())
+  {
     // Reviso si se dan las condiciones de éxito en el nivel 0
     switch (monitor.getLevel())
     {
     case 0: // Nivel 0 -> Reactivo los dos en un puesto base
-      if (monitor.getMapa()->getCelda(monitor.get_entidad(0)->getFil(),monitor.get_entidad(0)->getCol()) == 'X' and 
-          monitor.getMapa()->getCelda(monitor.get_entidad(1)->getFil(),monitor.get_entidad(1)->getCol()) == 'X')
-          {
-            //monitor.get_entidad(0)->setFin(true);
-            //monitor.get_entidad(1)->setFin(true);
-           monitor.finalizarJuego();
-           monitor.setMostrarResultados(true);
-          }
+      if (monitor.getMapa()->getCelda(monitor.get_entidad(0)->getFil(), monitor.get_entidad(0)->getCol()) == 'X' and
+          monitor.getMapa()->getCelda(monitor.get_entidad(1)->getFil(), monitor.get_entidad(1)->getCol()) == 'X')
+      {
+        // monitor.get_entidad(0)->setFin(true);
+        // monitor.get_entidad(1)->setFin(true);
+        monitor.finalizarJuego();
+        monitor.setMostrarResultados(true);
+      }
       break;
     case 1: // Nivel 1 -> Termina cuando se agotan los recursos de ciclos, tiempo o energía.
       break;
@@ -825,7 +894,7 @@ bool lanzar_motor_juego(int &colisiones, int acc)
       std::cout << "Porcentaje de mapa descubierto: " << monitor.CoincidenciaConElMapa() << endl;
       std::cout << "Porcentaje descubierto de caminos y senderos: " << monitor.CoincidenciaConElMapaCaminosYSenderos() << endl;
       std::cout << "Objetivos encontrados: (" << monitor.get_entidad(0)->getMisiones() << ") " << monitor.get_entidad(0)->getPuntuacion() << endl;
-        monitor.setMostrarResultados(false);
+      monitor.setMostrarResultados(false);
 
       out = true;
     }
@@ -843,19 +912,19 @@ void lanzar_motor_juego2(MonitorJuego &monitor)
     nucleo_motor_juego(monitor, -1);
   }
 
-  if (monitor.mostrarResultados() and ( monitor.getLevel() == 0) )
+  if (monitor.mostrarResultados() and (monitor.getLevel() == 0))
   {
     std::cout << "Coste de Bateria (Rescatador): " << 3000 - monitor.get_entidad(0)->getBateria() << endl;
     std::cout << "Coste de Bateria (Auxiliar): " << 3000 - monitor.get_entidad(1)->getBateria() << endl;
 
     monitor.setMostrarResultados(false);
   }
-  else   if (monitor.mostrarResultados() and ( monitor.getLevel() == 1) )
+  else if (monitor.mostrarResultados() and (monitor.getLevel() == 1))
   {
     std::cout << "Porcentaje de mapa descubierto: " << monitor.CoincidenciaConElMapaCaminosYSenderos() << endl;
     monitor.setMostrarResultados(false);
   }
-  else   if (monitor.mostrarResultados() and ( monitor.getLevel() == 2) )
+  else if (monitor.mostrarResultados() and (monitor.getLevel() == 2))
   {
     std::cout << "Longitud del camino (Rescatador): " << 2999 - monitor.get_entidad(0)->getInstantesPendientes() << endl;
     std::cout << "Coste de Bateria (Rescatador): " << 3000 - monitor.get_entidad(0)->getBateria() << endl;
