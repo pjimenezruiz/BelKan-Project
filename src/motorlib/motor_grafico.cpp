@@ -25,7 +25,7 @@ int nPasos = 10, tRetardo = 1, MMmode = 0, MMmode2 = 0, MMmode3 = 0, PosColumna 
 int Gravedad;
 int objtiveSelected = 0;
 int ultimomapaPos = 0, ultimonivel = 0;
-int ObjFil1, ObjFil2, ObjFil3, ObjCol1, ObjCol2, ObjCol3;
+int ObjFil1 = -1, ObjFil2 = -1, ObjFil3, ObjCol1 = -1, ObjCol2, ObjCol3;
 
 void irAlJuego(int valor);
 
@@ -273,15 +273,35 @@ void update(int valor)
 
   if (ObjFil1 != PosFila or ObjCol1 != PosColumna)
   {
-    monitor.put_active_objetivos(1);
     monitor.get_n_active_objetivo(0, PosFila, PosColumna, Gravedad);
 
-    editPosFila->set_int_val(PosFila);
-    editPosColumna->set_int_val(PosColumna);
-    check_Gravedad->set_int_val(Gravedad);
+    // editPosFila->set_int_val(PosFila);
+    // editPosColumna->set_int_val(PosColumna);
+    // check_Gravedad->set_int_val(Gravedad);
 
     ObjFil1 = PosFila;
     ObjCol1 = PosColumna;
+    ObjFil2 = Gravedad;
+  }
+
+  if (check_Gravedad->get_int_val() != Gravedad)
+  {
+    // El usuario cambia la gravedad del accidentado
+    int antiguaGravedad;
+    monitor.get_n_active_objetivo(0, PosFila, PosColumna, antiguaGravedad);
+    Gravedad = check_Gravedad->get_int_val();
+    monitor.set_n_active_objetivo(0, PosFila, PosColumna, Gravedad);
+  }
+
+  if (monitor.getLevel()<2){
+    editPosFila->disable();
+    editPosColumna->disable();
+    check_Gravedad->disable();
+  }
+  else {
+    editPosFila->enable();
+    editPosColumna->enable();
+    check_Gravedad->enable();
   }
 
   Gravedad = check_Gravedad->get_int_val();
@@ -458,8 +478,13 @@ void botonConfigurarSimOK(int valor)
   botonSalir->enable();
   editTextPasos->enable();
   editTextRetardo->disable();
-  // editPosColumna->disable();
-  // editPosColumna->disable();
+  if (ultimonivel > 1)
+  {
+    editPosFila->disable();
+    editPosColumna->disable();
+    check_Gravedad->disable();
+
+  }
 
   srand(setup1->get_int_val());
   monitor.inicializar();
@@ -467,13 +492,18 @@ void botonConfigurarSimOK(int valor)
   int f, c;
   int g;
 
-  // editPosColumna->enable();
-  // editPosFila->enable();
+  if (ultimonivel > 1)
+  {
+    editPosFila->enable();
+    editPosColumna->enable();
+    check_Gravedad->enable();
+  }
   monitor.set_n_active_objetivo(0, setup5->get_int_val(), setup4->get_int_val(), setup4_5->get_int_val());
   monitor.get_n_active_objetivo(0, f, c, g);
-  // cout << "Entorno grafico f= " << f << "  c= " << c << endl;
-  editPosFila->set_int_val(f);
-  editPosColumna->set_int_val(c);
+  ObjFil1 = PosFila = f;
+  ObjFil1 = PosColumna = c;
+  check_Gravedad->set_int_val(g);
+  Gravedad = g;
 
   monitor.get_entidad(0)->setPosicion(setup30->get_int_val(), setup20->get_int_val());
   monitor.get_entidad(0)->setOrientacion(static_cast<Orientacion>(setup60->get_int_val()));
@@ -681,9 +711,7 @@ void setRetardo(int valor)
 
 void setPosColumna(int valor)
 {
-  cout << "Cambiando la posición de la columna\n";
-  // monitor.setObjCol(PosColumna);
-  // cout << "setPosColumna()-> PosFila= " << PosFila << "  PosColumna= " << PosColumna << endl;
+  // Cambiando la posición de la columna
   monitor.set_n_active_objetivo(0, PosFila, PosColumna, Gravedad);
   ObjFil1 = PosFila;
   ObjCol1 = PosColumna;
@@ -692,8 +720,7 @@ void setPosColumna(int valor)
 
 void setPosFila(int valor)
 {
-  // monitor.setObjFil(PosFila);
-  // cout << "setPosFila() -> PosFila= " << PosFila << "  PosColumna= " << PosColumna << endl;
+  // Cambiando la posición de la fila
   monitor.set_n_active_objetivo(0, PosFila, PosColumna, Gravedad);
   ObjFil1 = PosFila;
   ObjCol1 = PosColumna;
@@ -702,14 +729,6 @@ void setPosFila(int valor)
 
 void setGravedad(int valor)
 {
-  // monitor.setObjFil(PosFila);
-  // cout << "setPosFila() -> PosFila= " << PosFila << "  PosColumna= " << PosColumna << endl;
-  Gravedad = valor;
-  cout << "Se cambio la gravedad\n";
-  monitor.set_n_active_objetivo(0, PosFila, PosColumna, Gravedad);
-  ObjFil1 = PosFila;
-  ObjCol1 = PosColumna;
-  ObjFil2 = Gravedad;
 }
 
 void botonSalirCB(int valor)
@@ -966,16 +985,9 @@ void lanzar_motor_grafico(int argc, char **argv)
   botonPaso->disable();
   botonEjecucion->disable();
   botonEjecutar->disable();
-  if (monitor.getLevel() == 0 or monitor.getLevel() == 1)
-  {
-    obj_panel->disable();
-  }
-  else
-  {
-    obj_panel->enable();
-  }
-  // editPosColumna->disable();
-  // editPosFila->disable();
+  editPosColumna->disable();
+  editPosFila->disable();
+  check_Gravedad->disable();
   editTextPasos->disable();
   editTextRetardo->disable();
 

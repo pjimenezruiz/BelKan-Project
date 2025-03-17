@@ -81,8 +81,8 @@ void Mapa::colorCeldaOpuestoMM(unsigned char celda)
     glColor3f(0, 0, 0);
     break;
   default:
-    glColor3f(0.0, 0.0, 0.0);
-    break;
+  glColor3f(1,0,0);
+  break;
   }
 }
 
@@ -122,7 +122,7 @@ void Mapa::colorCeldaOpuestoMM2(unsigned char celda)
     glColor3f(0, 0, 0);
     break;
   default:
-    glColor3f(0.0, 0.0, 0.0);
+    glColor3f(255.0 / 255.0, 159.0 / 255.0, 5.0 / 255.0);
     break;
   }
 }
@@ -359,7 +359,7 @@ void Mapa::drawMM1(vector<unsigned int> objetivosActivos, int level)
       glPushMatrix();
       glTranslatef(((GLfloat)objetivosActivos[i + 1] - (GLfloat)colMed) * ratio, ((GLfloat)filaMed - (GLfloat)objetivosActivos[i]) * ratio, 0);
       if (objetivosActivos[i + 2] == 0)
-        glColor3f(1.0, 1.0, 1.0);
+        glColor3f(0.0, 1.0, 1.0);
       else
         glColor3f(1.0, 0.0, 0.0);
 
@@ -371,7 +371,7 @@ void Mapa::drawMM1(vector<unsigned int> objetivosActivos, int level)
       glutSolidSphere(0.5, 6, 2);
 
       if (objetivosActivos[i + 2] == 0)
-        glColor3f(1.0, 1.0, 1.0);
+        glColor3f(0.0, 1.0, 1.0);
       else
         glColor3f(1.0, 0.0, 0.0);
 
@@ -553,7 +553,7 @@ void Mapa::drawMM2(vector<unsigned int> objetivosActivos, int level)
       glPushMatrix();
       glTranslatef(((GLfloat)objetivosActivos[i + 1] - (GLfloat)colMed) * ratio, ((GLfloat)filaMed - (GLfloat)objetivosActivos[i]) * ratio, 0);
       if (objetivosActivos[i + 2] == 0)
-        glColor3f(1.0, 1.0, 1.0);
+        glColor3f(0.0, 1.0, 1.0);
       else
         glColor3f(1.0, 0.0, 0.0);
 
@@ -565,7 +565,7 @@ void Mapa::drawMM2(vector<unsigned int> objetivosActivos, int level)
       glutSolidSphere(0.5, 6, 2);
 
       if (objetivosActivos[i + 2] == 0)
-        glColor3f(1.0, 1.0, 1.0);
+        glColor3f(0.0, 1.0, 1.0);
       else
         glColor3f(1.0, 0.0, 0.0);
 

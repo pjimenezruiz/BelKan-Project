@@ -17,12 +17,12 @@ bool actuacionRescatador(unsigned char celdaJ_inicial, unsigned char celdaJ_fin,
 
   gasto = monitor.get_entidad(0)->fixBateria_sig_accion_jugador(celdaJ_inicial, difAltJ, accion);
 
-  // std::cout << "Accion Jugador: " << accion << "   Accion Colaborador: " << accionColaborador << endl;
-  // std::cout << "Gasto Jugador: " << gasto_jugador << "   Gasto Colaborador: " << gasto_colaborador << "   Gasto Total: " << gasto << endl;
+  // std::cout << "Accion Rescatador: " << accion << "   Accion Colaborador: " << accionColaborador << endl;
+  // std::cout << "Gasto Rescatador: " << gasto_Rescatador << "   Gasto Colaborador: " << gasto_colaborador << "   Gasto Total: " << gasto << endl;
 
   if (gasto > monitor.get_entidad(0)->getBateria())
   {
-    cout << "La batería necesaria para las acciones seleccionadas superó a la batería disponible\n";
+    cout << "La energía necesaria para las acciones seleccionadas superó a la energía disponible\n";
     error = 1;
     monitor.get_entidad(0)->setBateria(0);
 
@@ -117,12 +117,12 @@ bool actuacionRescatador(unsigned char celdaJ_inicial, unsigned char celdaJ_fin,
       if (monitor.get_entidad(monitor.getMapa()->casillaOcupada(0))->getSubTipo() == excursionista)
       {
         monitor.get_entidad(0)->perderPV(1);
-        std::cout << "El jugador ha chocado con un excursionista\n";
+        std::cout << "El Rescatador ha chocado con un excursionista\n";
       }
       else if (monitor.get_entidad(monitor.getMapa()->casillaOcupada(0))->getSubTipo() == auxiliar)
       {
         monitor.get_entidad(0)->perderPV(1);
-        std::cout << "El jugador ha chocado con un auxiliar\n";
+        std::cout << "El Rescatador ha chocado con un auxiliar\n";
       }
       else if (monitor.get_entidad(monitor.getMapa()->casillaOcupada(0))->getSubTipo() == vandalo)
       {
@@ -143,7 +143,7 @@ bool actuacionRescatador(unsigned char celdaJ_inicial, unsigned char celdaJ_fin,
 
         // Opcion simplemente choca contra el vandalo
         monitor.get_entidad(0)->perderPV(1);
-        std::cout << "El jugador ha chocado con un vandalo\n";
+        std::cout << "El Rescatador ha chocado con un vandalo\n";
       }
       salida = false;
     }
@@ -174,12 +174,12 @@ bool actuacionRescatador(unsigned char celdaJ_inicial, unsigned char celdaJ_fin,
       {
       case 1: // Muro
         monitor.get_entidad(0)->seAostio();
-        std::cout << "El jugador ha chocado con un muro\n";
+        std::cout << "El Rescatador ha chocado con un muro\n";
         break;
 
       case 6: // Arbol
         monitor.get_entidad(0)->seAostio();
-        std::cout << "El jugador ha chocado con un árbol\n";
+        std::cout << "El Rescatador ha chocado con un árbol\n";
         break;
 
       case 2: // Precipicio
@@ -192,17 +192,17 @@ bool actuacionRescatador(unsigned char celdaJ_inicial, unsigned char celdaJ_fin,
 
       case 3: // auxiliar
         monitor.get_entidad(0)->seAostio();
-        std::cout << "El jugador ha chocado con el auxiliar\n";
+        std::cout << "El Rescatador ha chocado con el auxiliar\n";
         break;
 
       case 4: // excursionista
         monitor.get_entidad(0)->seAostio();
-        std::cout << "El jugador ha chocado con un excursionista\n";
+        std::cout << "El Rescatador ha chocado con un excursionista\n";
         break;
 
       case 5: // vandalo
         monitor.get_entidad(0)->seAostio();
-        std::cout << "El jugador ha chocado con un vandalo\n";
+        std::cout << "El Rescatador ha chocado con un vandalo\n";
         break;
       }
     }
@@ -399,12 +399,12 @@ bool actuacionAuxiliar(unsigned char celdaJ_inicial, unsigned char celdaJ_fin, i
 
   gasto = monitor.get_entidad(1)->fixBateria_sig_accion_jugador(celdaJ_inicial, difAltJ, accion);
 
-  // std::cout << "Accion Jugador: " << accion << "   Accion Colaborador: " << accionColaborador << endl;
-  // std::cout << "Gasto Jugador: " << gasto_jugador << "   Gasto Colaborador: " << gasto_colaborador << "   Gasto Total: " << gasto << endl;
+  // std::cout << "Accion Rescatador: " << accion << "   Accion Colaborador: " << accionColaborador << endl;
+  // std::cout << "Gasto Rescatador: " << gasto_Rescatador << "   Gasto Colaborador: " << gasto_colaborador << "   Gasto Total: " << gasto << endl;
 
   if (gasto > monitor.get_entidad(1)->getBateria())
   {
-    cout << "La batería necesaria para las acciones seleccionadas superó a la batería disponible\n";
+    cout << "La energía necesaria para las acciones seleccionadas superó a la energía disponible\n";
     error = 1;
     monitor.get_entidad(1)->setBateria(0);
 
@@ -887,8 +887,8 @@ bool lanzar_motor_juego(int &colisiones, int acc)
     {
       std::cout << "Instantes de simulacion no consumidos: " << monitor.get_entidad(0)->getInstantesPendientes() << endl;
       std::cout << "Tiempo Consumido: " << (1.0 * monitor.get_entidad(1)->getTiempo() + monitor.get_entidad(1)->getTiempo()) / CLOCKS_PER_SEC << endl;
-      std::cout << "Nivel Final de Bateria (Rescatador): " << monitor.get_entidad(0)->getBateria() << endl;
-      std::cout << "Nivel Final de Bateria (Auxiliar): " << monitor.get_entidad(1)->getBateria() << endl;
+      std::cout << "Nivel Final de Energía (Rescatador): " << monitor.get_entidad(0)->getBateria() << endl;
+      std::cout << "Nivel Final de Energía (Auxiliar): " << monitor.get_entidad(1)->getBateria() << endl;
       std::cout << "Colisiones: " << monitor.get_entidad(0)->getColisiones() + monitor.get_entidad(1)->getColisiones() << endl;
       std::cout << "Empujones: " << monitor.get_entidad(0)->getEmpujones() << endl;
       std::cout << "Porcentaje de mapa descubierto: " << monitor.CoincidenciaConElMapa() << endl;
@@ -914,8 +914,8 @@ void lanzar_motor_juego2(MonitorJuego &monitor)
 
   if (monitor.mostrarResultados() and (monitor.getLevel() == 0))
   {
-    std::cout << "Coste de Bateria (Rescatador): " << 3000 - monitor.get_entidad(0)->getBateria() << endl;
-    std::cout << "Coste de Bateria (Auxiliar): " << 3000 - monitor.get_entidad(1)->getBateria() << endl;
+    std::cout << "Coste de Energía (Rescatador): " << 3000 - monitor.get_entidad(0)->getBateria() << endl;
+    std::cout << "Coste de Energía (Auxiliar): " << 3000 - monitor.get_entidad(1)->getBateria() << endl;
 
     monitor.setMostrarResultados(false);
   }
@@ -927,13 +927,13 @@ void lanzar_motor_juego2(MonitorJuego &monitor)
   else if (monitor.mostrarResultados() and (monitor.getLevel() == 2))
   {
     std::cout << "Longitud del camino (Rescatador): " << 2999 - monitor.get_entidad(0)->getInstantesPendientes() << endl;
-    std::cout << "Coste de Bateria (Rescatador): " << 3000 - monitor.get_entidad(0)->getBateria() << endl;
+    std::cout << "Coste de Energía (Rescatador): " << 3000 - monitor.get_entidad(0)->getBateria() << endl;
     monitor.setMostrarResultados(false);
   }
   else if (monitor.mostrarResultados() and monitor.getLevel() == 3)
   {
     std::cout << "Longitud del camino (Auxiliar): " << 2999 - monitor.get_entidad(1)->getInstantesPendientes() << endl;
-    std::cout << "Coste de Bateria (Auxiliar): " << 3000 - monitor.get_entidad(1)->getBateria() << endl;
+    std::cout << "Coste de Energía (Auxiliar): " << 3000 - monitor.get_entidad(1)->getBateria() << endl;
     monitor.setMostrarResultados(false);
   }
   else if (monitor.mostrarResultados())
