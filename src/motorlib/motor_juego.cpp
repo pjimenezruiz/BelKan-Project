@@ -416,8 +416,6 @@ bool actuacionAuxiliar(unsigned char celdaJ_inicial, unsigned char celdaJ_fin, i
   case WALK:
     if (monitor.getMapa()->casillaOcupada(1) == -1 and abs(difAltJ) <= 1) // Casilla destino desocupada
     {
-      std::cout << "\tLa casilla destino está desocupada y la altura es correcta\n";
-
       switch (celdaJ_fin)
       {
       case 'M': // Muro
@@ -427,7 +425,7 @@ bool actuacionAuxiliar(unsigned char celdaJ_inicial, unsigned char celdaJ_fin, i
       case 'B': // Arbol
         if (!monitor.get_entidad(1)->Has_Zapatillas())
         {
-          monitor.get_entidad(0)->seAostio();
+          monitor.get_entidad(1)->seAostio();
           std::cout << "El auxiliar ha chocado contra un árbol\n";
         }
         else
@@ -492,8 +490,6 @@ bool actuacionAuxiliar(unsigned char celdaJ_inicial, unsigned char celdaJ_fin, i
     }
     else if (monitor.getMapa()->casillaOcupada(1) != -1) // Choca contra otro agente
     {
-      std::cout << "\tLa casilla destino está ocupada\n";
-
       // Choca contra una entidad
       monitor.get_entidad(1)->seAostio();
       if (monitor.get_entidad(monitor.getMapa()->casillaOcupada(1))->getSubTipo() == excursionista)
@@ -501,10 +497,10 @@ bool actuacionAuxiliar(unsigned char celdaJ_inicial, unsigned char celdaJ_fin, i
         monitor.get_entidad(1)->perderPV(1);
         std::cout << "El auxiliar ha chocado con un excursionista\n";
       }
-      else if (monitor.get_entidad(monitor.getMapa()->casillaOcupada(1))->getSubTipo() == auxiliar)
+      else if (monitor.get_entidad(monitor.getMapa()->casillaOcupada(1))->getTipo() == jugador)
       {
         monitor.get_entidad(1)->perderPV(1);
-        std::cout << "El auxiliar ha chocado con un auxiliar\n";
+        std::cout << "El auxiliar ha chocado con el rescatador\n";
       }
       else if (monitor.get_entidad(monitor.getMapa()->casillaOcupada(1))->getSubTipo() == vandalo)
       {
