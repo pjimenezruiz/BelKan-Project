@@ -419,7 +419,7 @@ void MonitorJuego::inicializar(int pos_filaJ, int pos_colJ, int brujJ, int pos_f
       for (int j = 0; j < getMapa()->getNCols(); j++)
         mAux[i][j] = getMapa()->getCelda(i, j);
 
-    vector<vector<int>> mAuxC(getMapa()->getNFils(), vector<int>(getMapa()->getNCols(), 0));
+    vector<vector<unsigned char>> mAuxC(getMapa()->getNFils(), vector<unsigned char>(getMapa()->getNCols(), 0));
     for (int i = 0; i < getMapa()->getNFils(); i++)
       for (int j = 0; j < getMapa()->getNCols(); j++)
         mAuxC[i][j] = getMapa()->alturaEnCelda(i, j);
