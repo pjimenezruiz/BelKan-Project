@@ -122,6 +122,7 @@ Cuando la ejecución está detenida en un breakpoint, podemos consultar mucha in
 ![Consola de depuración](images/consola_depuracion.png)
 
 También, podemos poner condiciones en los breakpoints, para que no salten cada vez que lleguemos a esa línea de código, sino que solo si se cumplen ciertas condiciones. Por ejemplo, si queremos que el breakpoint solo salte si estoy en un puesto base (casilla 'X'), podemos configurarlo pinchando en el breakpoint con el botón derecho y seleccionando "Editar punto de interrupción". En el cuadro que se nos abre, podemos escribir la condición que queramos:
+
 ![Condición en un breakpoint](images/breakpoint_condicional.png)
 
 Por último, si nuestro programa finaliza por un error mientras estemos depurando, tendremos la oportunidad de consultar el estado del programa en ese momento. El programa se nos parará, como si fuera un breakpoint, en el momento de la excepción. Podremos consultar el estado de las variables y la pila de llamadas también, y ver qué ha pasado.
