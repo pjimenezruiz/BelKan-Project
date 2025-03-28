@@ -21,9 +21,10 @@ Con la carpeta abierta, debemos asegurarnos de tener instaladas todas las extens
 
 ## El archivo launch.json
 
-A continuación, vamos a colocar el archivo `launch.json` que tenemos en este mismo directorio en la carpeta oculta `.vscode` del directorio de la práctica. Podemos hacerlo a mano, aunque la barra de archivos de VSCode no nos va a mostrar esa carpeta. Para hacerlo por terminal, podemos ejecutar el siguiente comando (asumiendo que estamos en el directorio raíz de la práctica):
+A continuación, vamos a colocar el archivo `launch.json` que tenemos en este mismo directorio en la carpeta oculta `.vscode` del directorio de la práctica. Es posible que de primeras no tengamos una carpeta con ese nombre, en cuyo caso tendremos que crearla antes. Podemos hacerlo a mano, usando un navegador de archivos o el propio explorador de VSCode, o a través de terminal. Para hacerlo por terminal, podemos ejecutar los siguientes comandos (asumiendo que estamos en el directorio raíz de la práctica):
 
 ```bash
+mkdir .vscode
 cp debug_tutorial/launch.json .vscode/
 ```
 
@@ -34,6 +35,8 @@ Nos puede interesar más adelante modificar estos parámetros, bien para usar el
 ```json
 "args": ["./mapas/mapa30.map", "0", "0", "17", "5", "0", "17", "17", "0", "3", "3", "0"]
 ```
+
+Siempre que queramos modificar este archivo, debemos modificar el que hemos copiado dentro de `.vscode`. Del original, el que está en el directorio `debug_tutorial`, nos podemos olvidar.
 
 ## Cambiando la localización por defecto de los ejecutables.
 
