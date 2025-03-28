@@ -30,7 +30,7 @@ cp debug_tutorial/launch.json .vscode/
 
 Echemos un vistazo rápido al archivo. Vemos que hay una serie de claves con valores asociados. Los que nos interesan principalmente son `program`, donde se encuentra el nombre del programa que queremos ejecutar (en este caso, `"{workspaceFolder}/practica2"`), y `args`, donde se encuentran los argumentos que queremos pasarle al programa. En este caso, no hay ninguno.
 
-Nos puede interesar más adelante modificar estos parámetros, bien para usar el programa sin gráfica (`practica2SG`), o bien para lanzar cualquiera de los dos programas con argumentos específicos. Si queremos pasar argumentos, debemos añadirlos a la lista de `args` en el archivo `launch.json`. Los argumentos se añaden como elementos de una lista, separados por comas. Por ejemplo, para el ejemplo del tutorial parte 1, `./mapas/mapa30.map 0 0 17 5 0 17 17 0 3 3 0`, añadiríamos los argumentos de la siguiente forma:
+Nos puede interesar más adelante modificar estos parámetros, bien para usar el programa sin gráfica (`practica2SG`), o bien para lanzar cualquiera de los dos programas con argumentos específicos. Si queremos pasar argumentos, debemos añadirlos a la lista de `args` en el archivo `launch.json`. Los argumentos se añaden como elementos de una lista, separados por comas. Por ejemplo, para el ejemplo del tutorial parte 1, `./practica2 ./mapas/mapa30.map 0 0 17 5 0 17 17 0 3 3 0`, añadiríamos los argumentos de la siguiente forma:
 
 ```json
 "args": ["./mapas/mapa30.map", "0", "0", "17", "5", "0", "17", "17", "0", "3", "3", "0"]
@@ -93,8 +93,51 @@ Si nos saliera una cosa diferente o nos dijera que tenemos que crear un archivo 
 
 Estando en este menú solo tenemos que darle al botón del play, y se nos abrirá el programa. Tanto el programa que se ejecute como los argumentos que se le pasen son los que tengamos especificados en el archivo `launch.json`. Cuando queramos depurar con otros parámetros, tendremos que modificar este archivo.
 
-
 ## Breakpoints y excepciones
+
+Una vez que hemos abierto el programa, podemos empezar a depurar. Para ello, podemos poner breakpoints en el código. Un breakpoint es un punto en el código donde queremos que el programa se detenga para poder inspeccionar el estado de las variables y la ejecución del programa. Para poner un breakpoint, simplemente debemos pinchar en la barra lateral izquierda, en la columna donde aparecen los números de línea. Un punto rojo aparecerá en la línea donde hayamos pinchado, indicando que hemos puesto un breakpoint. Si queremos quitarlo, simplemente volvemos a pinchar en la misma línea.
+
+Con un breakpoint puesto, cuando ejecutemos el programa en modo `Debug` desde el menú de depuración, el programa se nos parará cuando llegue a la línea de código con el breakpoint. Hagamos una prueba colocando un breakpoint al principio del `think`, en `rescatador.cpp`:
+
+![Poniendo un breakpoint](images/breakpoint.png)
+
+Ahora ejecutamos desde la ventana de depuración, cargamos un mapa y un nivel, y le damos a "Paso". En ese momento se entrará en el método `think` y el programa se nos parará en el breakpoint. Nos encontraremos en la situación de la siguiente imagen:
+
+![Parada en el breakpoint](images/pause_on_breakpoint.png)
+
+Vemos también que nos aparece una barra de herramientas en la parte superior con distintos botones. Estos botones nos permiten ir controlando la depuración paso a paso. De izquierda a derecha, son:
+- **Continuar.** Continúa la ejecución del programa hasta el siguiente breakpoint.
+- **Paso a paso por procedimientos.** Ejecuta la siguiente línea de código, pero si se llama a una función, se ejecuta toda la función sin parar. Es decir, no se entra en las funciones.
+- **Paso a paso por instrucciones.** Ejecuta la siguiente instrucción de código, aunque sea dentro de una función. Es decir, se entra en las funciones.
+- **Salir de la depuración.** Sale hasta la función que ha llamado a la función actual.
+- **Reiniciar.** Reinicia la depuración del programa.
+- **Detener.** Detiene la ejecución del programa.
+
+Cuando tengáis código implementado del tutorial podéis experimentar con los distintos botones para comprender mejor su funcionamiento.
+
+Cuando la ejecución está detenida en un breakpoint, podemos consultar mucha información:
+- **Variables e inspección.** En la parte izquierda de la pantalla, en la pestaña de "Variables", podemos ver el valor de las variables en ese momento. Si pinchamos en una variable, podemos ver su valor y su tipo. Si pinchamos en un objeto, podemos ver sus atributos y métodos. Podemos añadir las variables que queramos a la lista de inspección, para tenerlas siempre a mano.
+![Variables e inspección](images/variables.png)
+
+- **Pila de llamadas.** En la parte inferior izquierda, en la pestaña de "Pila de llamadas", podemos ver la pila de llamadas en ese momento. Es decir, las funciones que se han llamado hasta llegar a ese punto. Si pinchamos en una función, podemos ver las variables locales de esa función y su posición en el código antes de que se llamara a la función actual.
+![Pila de llamadas](images/pila_llamadas.png)
+- **Consola de depuración.** En la parte inferior, en la pestaña de "Consola de depuración", podemos consultar el estado de las variables de forma más dinámica. Podemos escribir expresiones de C++ y ver su valor en ese momento. Por ejemplo, si queremos consultar una posición concreta del sensor de terreno en el momento actual:
+![Consola de depuración](images/consola_depuracion.png)
+
+También, podemos poner condiciones en los breakpoints, para que no salten cada vez que lleguemos a esa línea de código, sino que solo si se cumplen ciertas condiciones. Por ejemplo, si queremos que el breakpoint solo salte si estoy en un puesto base (casilla 'X'), podemos configurarlo pinchando en el breakpoint con el botón derecho y seleccionando "Editar punto de interrupción". En el cuadro que se nos abre, podemos escribir la condición que queramos:
+
+![Condición en un breakpoint](images/breakpoint_condicional.png)
+
+Por último, si nuestro programa finaliza por un error mientras estemos depurando, tendremos la oportunidad de consultar el estado del programa en ese momento. El programa se nos parará, como si fuera un breakpoint, en el momento de la excepción. Podremos consultar el estado de las variables y la pila de llamadas también, y ver qué ha pasado.
+![UPS](images/ups.png)
+
+Recuerda consultar bien las variables y su valor cuando se producen este tipo de errores, ya que normalmente el error no será tan evidente. Tienes la consola de depuración también para ayudarte. En muchas ocasiones, el error saltará en una clase o fichero de clases internas de C++ que no corresponde a los de la práctica. Pero si miras la pila de llamadas, podrás comprobar que a la función que ha causado el error se ha llamado desde una función de tu código. ¡Con todas estas herramientas no habrá error que se te resista!
+
+Con esto concluye el tutorial de depuración en C++ con VSCode. Hemos visto una pequeña parte de todo lo que se puede hacer para depurar. Si tienes alguna duda, no dudes en preguntar a tus profesores.
+
+## Preguntas frecuentes
+
+- **No me coge el programa los breakpoint, me salen grises cuando le doy a ejecutar.** Posiblemente o te falte poner el modo `Debug`, o el IDE siga creyendo que tiene que leer los archivos de la carpeta `build/`. Asegúrate de que está el modo `Debug` y que has cambiado la configuración del espacio de trabajo para que no use el directorio `build`. Después, borra la carpeta `build/` si existe, los archivos `Makefile` y `CMakeCache.txt`, y vuelve a ejecutar el script `install.sh`. Al acabar esto, vuelve a probar con el botón de compilar, y una vez compilado vuelve a probar con los breakpoints.
 
 ## El camino difícil: depurando en MAC
 
