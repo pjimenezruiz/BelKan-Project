@@ -878,7 +878,7 @@ void nucleo_motor_juego(MonitorJuego &monitor, int acc)
       if (monitor.getMapa()->getCelda(monitor.get_entidad(1)->getFil(), monitor.get_entidad(1)->getCol()) != 'X' and
           monitor.getMapa()->getCelda(monitor.get_entidad(1)->getFil(), monitor.get_entidad(1)->getCol()) != 'D' and
           monitor.getMapa()->getCelda(monitor.get_entidad(1)->getFil(), monitor.get_entidad(1)->getCol()) != 'C' and
-          (monitor.get_entidad(1)->Has_Zapatillas() or  monitor.getMapa()->getCelda(monitor.get_entidad(1)->getFil(), monitor.get_entidad(1)->getCol()) != 'B') and
+          (!monitor.get_entidad(1)->Has_Zapatillas() or  monitor.getMapa()->getCelda(monitor.get_entidad(1)->getFil(), monitor.get_entidad(1)->getCol()) != 'B') and
           !monitor.getCaminoAbandonadoAuxiliar())
       {
         monitor.setCaminoAbandonadoAuxiliar(true);

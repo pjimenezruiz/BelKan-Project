@@ -3,7 +3,7 @@
 
 Action ComportamientoRescatador::think(Sensores sensores)
 {
-	Action accion = IDLE;
+	Action accion = WALK;
 
 	switch (sensores.nivel)
 	{
