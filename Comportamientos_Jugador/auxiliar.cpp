@@ -4,7 +4,7 @@
 
 Action ComportamientoAuxiliar::think(Sensores sensores)
 {
-	Action accion = WALK;
+	Action accion = IDLE;
 
 	switch (sensores.nivel)
 	{
